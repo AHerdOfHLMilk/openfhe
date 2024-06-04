@@ -88,14 +88,14 @@ Ciphertext<DCRTPoly> downSweep(Ciphertext<DCRTPoly> cipher, CryptoContext<DCRTPo
     cipher = cryptoContext->EvalMult(cipher, idMask);
 
     for (int index = log2(size); index >= 1; index--) {
-        auto cipherMask = maskGenerate(slots, pow(2,index-2), cryptoContext, keys);
+        auto cipherMask = maskGenerate(slots, index-1, cryptoContext, keys);
         cipherMask->SetLength(32);
 
         //obtain target values (the left subchild of roots and the value of the root)
         auto children = cryptoContext->EvalMult(cipher, cipherMask);
 
         Plaintext plresult;
-        cryptoContext->Decrypt(keys.secretKey, children, &plresult);
+        cryptoContext->Decrypt(keys.secretKey, cipher, &plresult);
         plresult->SetLength(2*size);
         std::cout << " run " << log2(size) - index + 1 << ": " << plresult;
         std::cout << std::endl;
@@ -108,7 +108,7 @@ Ciphertext<DCRTPoly> downSweep(Ciphertext<DCRTPoly> cipher, CryptoContext<DCRTPo
         auto result1 = cryptoContext->EvalAdd(children, cipher);
 
 
-        auto prevMask = maskGenerate(slots, pow(2, index-1), cryptoContext, keys);
+        auto prevMask = maskGenerate(slots, index, cryptoContext, keys);
 
         //Begin second operation by obtaining values of roots only
         auto roots = cryptoContext->EvalMult(cipher, prevMask);
@@ -192,11 +192,11 @@ void prefixSum(std::vector<int64_t> v, int size) {
         std::cout << std::endl;
 }
 
-//assume balanced binary tree (size of plaintext in size of 2**n exactly), later function to pad to 2**n if needed
+//assume balanced binary tree (size of plaintext is size of 2**n exactly), later function to pad to 2**n if needed
 
 int main() {
-    std::vector<int64_t> vector = {2,3,7,5,2,3,7,5};
-    std::vector<int64_t> vector2 = {2,3,7,5,2,3,7,5};
+    std::vector<int64_t> vector = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+    std::vector<int64_t> vector2 = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
     for (int i = 0; i < (128/16)-1; i++) {
         vector.insert(vector.end(), vector2.begin(), vector2.end());
     }
