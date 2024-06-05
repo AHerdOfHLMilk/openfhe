@@ -15,6 +15,10 @@ cmath
 -
 vector
 -
+ctype.h
+-
+string
+-
 
 /usr/local/include/openfhe/binfhe/binfhe-base-params.h
 lattice/lat-hal.h

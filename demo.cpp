@@ -2,6 +2,8 @@
 #include <math.h>
 #include <cmath>
 #include <vector>
+#include <ctype.h>
+#include <string>
 
 using namespace lbcrypto;
 
@@ -175,6 +177,7 @@ void prefixSum(std::vector<int64_t> v, int size) {
 
     //encryption
     Plaintext plaintext = cryptoContext->MakePackedPlaintext(v);
+    std::cout << "Initial Vector: " << plaintext << std::endl;
     auto cipher = cryptoContext->Encrypt(keys.publicKey, plaintext);
 
     //test
@@ -192,16 +195,31 @@ void prefixSum(std::vector<int64_t> v, int size) {
         std::cout << std::endl;
 }
 
+std::vector<int64_t> pad (std::vector<int64_t> v, int size) {
+    int vsize = v.size();
+    for (int i = 0; i < size - vsize; i++) {
+        v.push_back(0);
+    }
+    return v;
+}
+
 //assume balanced binary tree (size of plaintext is size of 2**n exactly), later function to pad to 2**n if needed
 
 int main() {
-    std::vector<int64_t> vector = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-    std::vector<int64_t> vector2 = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-    for (int i = 0; i < (128/16)-1; i++) {
+    std::vector<int64_t> vector;
+
+
+    vector = {1,2,3,4,5,6,7,8,9,10,11,12}; //Change this vector to change vector to be prefix summed
+
+
+    int vectorSize = pow(2, (int)log2(vector.size())+1);
+    vector = pad(vector, vectorSize);
+    std::vector<int64_t> vector2(vector);
+
+    for (int i = 0; i < (128/vectorSize)-1; i++) {
         vector.insert(vector.end(), vector2.begin(), vector2.end());
     }
-    prefixSum(vector, 16);
-
+    prefixSum(vector, vectorSize);
 
     return 0;
 }
