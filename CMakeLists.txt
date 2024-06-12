@@ -58,4 +58,5 @@ endif()
 ### EXAMPLE:
 ### add_executable( test demo-simple-example.cpp )
 
-add_executable( test demo.cpp )
+add_executable( prefix-sum prefix-sum.cpp )
+add_executable( poly-eval poly-eval.cpp )

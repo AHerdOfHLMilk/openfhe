@@ -1,3 +1,4 @@
-/mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles/rebuild_cache.dir
-/mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles/edit_cache.dir
-/mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles/test.dir
+/mnt/d/Work/astar/openfhetest/build/CMakeFiles/rebuild_cache.dir
+/mnt/d/Work/astar/openfhetest/build/CMakeFiles/edit_cache.dir
+/mnt/d/Work/astar/openfhetest/build/CMakeFiles/poly-eval.dir
+/mnt/d/Work/astar/openfhetest/build/CMakeFiles/prefix-sum.dir

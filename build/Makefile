@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/d/Work/ASTAR/openfhetest
+CMAKE_SOURCE_DIR = /mnt/d/Work/astar/openfhetest
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/d/Work/ASTAR/openfhetest/build
+CMAKE_BINARY_DIR = /mnt/d/Work/astar/openfhetest/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles /mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/astar/openfhetest/build/CMakeFiles /mnt/d/Work/astar/openfhetest/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/astar/openfhetest/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -111,44 +111,84 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named test
+# Target rules for targets named poly-eval
 
 # Build rule for target.
-test: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 test
-.PHONY : test
+poly-eval: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 poly-eval
+.PHONY : poly-eval
 
 # fast build rule for target.
-test/fast:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
-.PHONY : test/fast
+poly-eval/fast:
+	$(MAKE) -f CMakeFiles/poly-eval.dir/build.make CMakeFiles/poly-eval.dir/build
+.PHONY : poly-eval/fast
 
-demo.o: demo.cpp.o
+#=============================================================================
+# Target rules for targets named prefix-sum
 
-.PHONY : demo.o
+# Build rule for target.
+prefix-sum: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 prefix-sum
+.PHONY : prefix-sum
+
+# fast build rule for target.
+prefix-sum/fast:
+	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/build
+.PHONY : prefix-sum/fast
+
+poly-eval.o: poly-eval.cpp.o
+
+.PHONY : poly-eval.o
 
 # target to build an object file
-demo.cpp.o:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/demo.cpp.o
-.PHONY : demo.cpp.o
+poly-eval.cpp.o:
+	$(MAKE) -f CMakeFiles/poly-eval.dir/build.make CMakeFiles/poly-eval.dir/poly-eval.cpp.o
+.PHONY : poly-eval.cpp.o
 
-demo.i: demo.cpp.i
+poly-eval.i: poly-eval.cpp.i
 
-.PHONY : demo.i
+.PHONY : poly-eval.i
 
 # target to preprocess a source file
-demo.cpp.i:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/demo.cpp.i
-.PHONY : demo.cpp.i
+poly-eval.cpp.i:
+	$(MAKE) -f CMakeFiles/poly-eval.dir/build.make CMakeFiles/poly-eval.dir/poly-eval.cpp.i
+.PHONY : poly-eval.cpp.i
 
-demo.s: demo.cpp.s
+poly-eval.s: poly-eval.cpp.s
 
-.PHONY : demo.s
+.PHONY : poly-eval.s
 
 # target to generate assembly for a file
-demo.cpp.s:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/demo.cpp.s
-.PHONY : demo.cpp.s
+poly-eval.cpp.s:
+	$(MAKE) -f CMakeFiles/poly-eval.dir/build.make CMakeFiles/poly-eval.dir/poly-eval.cpp.s
+.PHONY : poly-eval.cpp.s
+
+prefix-sum.o: prefix-sum.cpp.o
+
+.PHONY : prefix-sum.o
+
+# target to build an object file
+prefix-sum.cpp.o:
+	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/prefix-sum.cpp.o
+.PHONY : prefix-sum.cpp.o
+
+prefix-sum.i: prefix-sum.cpp.i
+
+.PHONY : prefix-sum.i
+
+# target to preprocess a source file
+prefix-sum.cpp.i:
+	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/prefix-sum.cpp.i
+.PHONY : prefix-sum.cpp.i
+
+prefix-sum.s: prefix-sum.cpp.s
+
+.PHONY : prefix-sum.s
+
+# target to generate assembly for a file
+prefix-sum.cpp.s:
+	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/prefix-sum.cpp.s
+.PHONY : prefix-sum.cpp.s
 
 # Help Target
 help:
@@ -158,10 +198,14 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... test"
-	@echo "... demo.o"
-	@echo "... demo.i"
-	@echo "... demo.s"
+	@echo "... poly-eval"
+	@echo "... prefix-sum"
+	@echo "... poly-eval.o"
+	@echo "... poly-eval.i"
+	@echo "... poly-eval.s"
+	@echo "... prefix-sum.o"
+	@echo "... prefix-sum.i"
+	@echo "... prefix-sum.s"
 .PHONY : help
 
 

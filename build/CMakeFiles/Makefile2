@@ -44,16 +44,17 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/d/Work/ASTAR/openfhetest
+CMAKE_SOURCE_DIR = /mnt/d/Work/astar/openfhetest
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/d/Work/ASTAR/openfhetest/build
+CMAKE_BINARY_DIR = /mnt/d/Work/astar/openfhetest/build
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/test.dir/all
+all: CMakeFiles/poly-eval.dir/all
+all: CMakeFiles/prefix-sum.dir/all
 
 .PHONY : all
 
@@ -63,36 +64,64 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/test.dir/clean
+clean: CMakeFiles/poly-eval.dir/clean
+clean: CMakeFiles/prefix-sum.dir/clean
 
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/test.dir
+# Target rules for target CMakeFiles/poly-eval.dir
 
 # All Build rule for target.
-CMakeFiles/test.dir/all:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/depend
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles --progress-num=1,2 "Built target test"
-.PHONY : CMakeFiles/test.dir/all
+CMakeFiles/poly-eval.dir/all:
+	$(MAKE) -f CMakeFiles/poly-eval.dir/build.make CMakeFiles/poly-eval.dir/depend
+	$(MAKE) -f CMakeFiles/poly-eval.dir/build.make CMakeFiles/poly-eval.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/d/Work/astar/openfhetest/build/CMakeFiles --progress-num=1,2 "Built target poly-eval"
+.PHONY : CMakeFiles/poly-eval.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/ASTAR/openfhetest/build/CMakeFiles 0
-.PHONY : CMakeFiles/test.dir/rule
+CMakeFiles/poly-eval.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/astar/openfhetest/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/poly-eval.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/astar/openfhetest/build/CMakeFiles 0
+.PHONY : CMakeFiles/poly-eval.dir/rule
 
 # Convenience name for target.
-test: CMakeFiles/test.dir/rule
+poly-eval: CMakeFiles/poly-eval.dir/rule
 
-.PHONY : test
+.PHONY : poly-eval
 
 # clean rule for target.
-CMakeFiles/test.dir/clean:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/clean
-.PHONY : CMakeFiles/test.dir/clean
+CMakeFiles/poly-eval.dir/clean:
+	$(MAKE) -f CMakeFiles/poly-eval.dir/build.make CMakeFiles/poly-eval.dir/clean
+.PHONY : CMakeFiles/poly-eval.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/prefix-sum.dir
+
+# All Build rule for target.
+CMakeFiles/prefix-sum.dir/all:
+	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/depend
+	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/mnt/d/Work/astar/openfhetest/build/CMakeFiles --progress-num=3,4 "Built target prefix-sum"
+.PHONY : CMakeFiles/prefix-sum.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/prefix-sum.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/astar/openfhetest/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/prefix-sum.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/d/Work/astar/openfhetest/build/CMakeFiles 0
+.PHONY : CMakeFiles/prefix-sum.dir/rule
+
+# Convenience name for target.
+prefix-sum: CMakeFiles/prefix-sum.dir/rule
+
+.PHONY : prefix-sum
+
+# clean rule for target.
+CMakeFiles/prefix-sum.dir/clean:
+	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/clean
+.PHONY : CMakeFiles/prefix-sum.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
