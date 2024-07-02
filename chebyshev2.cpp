@@ -30,6 +30,10 @@ double leakyReLU(double val) {
     return std::max((double) 0.01*val, val);
 }
 
+double SiLU(double val) {
+    return val * (1.0/(1.0 + std::exp(-val)));
+}
+
 //Function to print out contents of a vector
 void printV(std::vector<double> v) {
     for (auto i : v) {
@@ -216,9 +220,11 @@ double coeffEval(std::vector<double> ys, std::vector<double> term, std::vector<d
     auto temp = calcTerm(term, roots);
     auto temp2 = vMultiplyV(temp, ys);
     double result = 2 * vSum(temp2)/degree;
-    if (std::abs(result) < pow(10, -14)) {
-        return 0;
-    }
+
+    //Due to precision of pi, can remove if introduces error
+    // if (std::abs(result) < pow(10, -14)) {
+    //     return 0;
+    // }
     return result;
 }
 
@@ -275,12 +281,12 @@ std::vector<double> polyApprox(double (*func)(double), int degree, double interv
 //Calculate Max Approximation Error:
 
 //this constant determines the number points checked for the max approx error
-constexpr double APPROX_ERROR_SCALE = 1.0/1000.0;
+constexpr double APPROX_ERROR_SCALE = 0.001;
 
 //get max approxError
 double getMaxApproxError(std::vector<double> approxFunc, double (*func)(double), double intervalS, double intervalE) {
     double maxError = 0;
-    for (int i = intervalS; i < intervalE; i = i + APPROX_ERROR_SCALE) {
+    for (double i = intervalS; i < intervalE; i = i + APPROX_ERROR_SCALE) {
         double approxVal = polyEval(approxFunc, i);
         double originalVal = func(i);
         double error = std::abs(originalVal - approxVal);
@@ -293,7 +299,7 @@ double getMaxApproxError(std::vector<double> approxFunc, double (*func)(double),
 
 double getMeanApproxError(std::vector<double> approxFunc, double (*func)(double), double intervalS, double intervalE) {
     double meanError = 0;
-    for (int i = intervalS; i < intervalE; i = i + APPROX_ERROR_SCALE) {
+    for (double i = intervalS; i < intervalE; i = i + APPROX_ERROR_SCALE) {
         double approxVal = polyEval(approxFunc, i);
         double originalVal = func(i);
         double error = std::abs(originalVal - approxVal) * APPROX_ERROR_SCALE;
@@ -328,7 +334,7 @@ int main() {
     CCParams<CryptoContextCKKSRNS> params;
     params.SetPlaintextModulus(257); // p
     params.SetRingDim(128); // n =  m/2
-    params.SetMultiplicativeDepth(5); // no. q
+    params.SetMultiplicativeDepth(50); // no. q
     params.SetMaxRelinSkDeg(3);
     params.SetSecurityLevel(HEStd_NotSet);
 
@@ -344,7 +350,7 @@ int main() {
     cc->EvalMultKeyGen(keys.secretKey);
 
     //Approximate function
-    std::vector<double> approxActivation = polyApprox(&ReLU, 3, -1, 1);
+    std::vector<double> approxActivation = polyApprox(&SiLU, 5, -5, 5);
     approxActivation = cleanCoeffs(approxActivation);
     printV(approxActivation);
 
@@ -360,6 +366,12 @@ int main() {
     result->SetLength(vector.size());
     std::cout << "Result is:" << std::endl;
     std::cout << result << std::endl;
+
+    std::cout << "Mean Approx Error is:" << std::endl;
+    std::cout << getMeanApproxError(approxActivation, &SiLU, -5, 5) << std::endl;
+
+    std::cout << "Max Approx Error is:" << std::endl;
+    std::cout << getMaxApproxError(approxActivation, &SiLU, -5, 5) << std::endl;
 
     return 0;
 
