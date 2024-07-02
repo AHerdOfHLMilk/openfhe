@@ -315,6 +315,14 @@ Ciphertext<DCRTPoly> toPolyCC(CryptoContext<DCRTPoly> cc,  KeyPair<DCRTPoly> key
     return poly;
 }
 
+//Remove trailing zeros from coeffs vector (necessary for openfhe)
+std::vector<double> cleanCoeffs(std::vector<double> coeffs) {
+    for(int i = coeffs.size() - 1; i >= 0 && coeffs[i] == 0; --i) {
+        coeffs.resize(i);
+    }
+    return coeffs;
+}
+
 int main() {
     //set params
     CCParams<CryptoContextCKKSRNS> params;
@@ -336,12 +344,14 @@ int main() {
     cc->EvalMultKeyGen(keys.secretKey);
 
     //Approximate function
-    std::vector<double> approxActivation = polyApprox(&test, 3, -1, 1);
+    std::vector<double> approxActivation = polyApprox(&ReLU, 3, -1, 1);
+    approxActivation = cleanCoeffs(approxActivation);
     printV(approxActivation);
 
     //poly eval
     std::vector<std::complex<double>> vector = {1,2,3,4};
     std::vector<double> coeffs = approxActivation;
+
     auto cipher = toPolyCC(cc, keys, vector, coeffs);
 
     //check if correct
