@@ -18,6 +18,9 @@ Ciphertext<DCRTPoly> toPolyCC(CryptoContext<DCRTPoly> cc,  KeyPair<DCRTPoly> key
     return poly;
 }
 
+double test(double val) {
+    return val*val*val + 4*val + 12;
+}
 
 int main() {
     //set params
@@ -38,7 +41,7 @@ int main() {
     
     //poly eval
     std::vector<std::complex<double>> vector = {0.5, 0.7, 0.9, 0.95, 0.93};
-    std::vector<double> coeffs = {0.15, 0.75, 0, 1.25, 0, 0, 1, 0, 1, 2, 0, 1, 0, 0, 0, 0, 1};
+    std::vector<double> coeffs = {1,2,3,4,5};
     auto cipher = toPolyCC(cc, keys, vector, coeffs);
 
     //check if correct

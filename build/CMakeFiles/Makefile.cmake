@@ -47,6 +47,8 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/cMatrix.dir/DependInfo.cmake"
   "CMakeFiles/poly-eval.dir/DependInfo.cmake"
+  "CMakeFiles/chebyshev.dir/DependInfo.cmake"
   "CMakeFiles/prefix-sum.dir/DependInfo.cmake"
   )

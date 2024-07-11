@@ -111,6 +111,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named cMatrix
+
+# Build rule for target.
+cMatrix: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 cMatrix
+.PHONY : cMatrix
+
+# fast build rule for target.
+cMatrix/fast:
+	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/build
+.PHONY : cMatrix/fast
+
+#=============================================================================
 # Target rules for targets named poly-eval
 
 # Build rule for target.
@@ -124,6 +137,19 @@ poly-eval/fast:
 .PHONY : poly-eval/fast
 
 #=============================================================================
+# Target rules for targets named chebyshev
+
+# Build rule for target.
+chebyshev: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 chebyshev
+.PHONY : chebyshev
+
+# fast build rule for target.
+chebyshev/fast:
+	$(MAKE) -f CMakeFiles/chebyshev.dir/build.make CMakeFiles/chebyshev.dir/build
+.PHONY : chebyshev/fast
+
+#=============================================================================
 # Target rules for targets named prefix-sum
 
 # Build rule for target.
@@ -135,6 +161,60 @@ prefix-sum: cmake_check_build_system
 prefix-sum/fast:
 	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/build
 .PHONY : prefix-sum/fast
+
+cMatrix.o: cMatrix.cpp.o
+
+.PHONY : cMatrix.o
+
+# target to build an object file
+cMatrix.cpp.o:
+	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/cMatrix.cpp.o
+.PHONY : cMatrix.cpp.o
+
+cMatrix.i: cMatrix.cpp.i
+
+.PHONY : cMatrix.i
+
+# target to preprocess a source file
+cMatrix.cpp.i:
+	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/cMatrix.cpp.i
+.PHONY : cMatrix.cpp.i
+
+cMatrix.s: cMatrix.cpp.s
+
+.PHONY : cMatrix.s
+
+# target to generate assembly for a file
+cMatrix.cpp.s:
+	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/cMatrix.cpp.s
+.PHONY : cMatrix.cpp.s
+
+chebyshev2.o: chebyshev2.cpp.o
+
+.PHONY : chebyshev2.o
+
+# target to build an object file
+chebyshev2.cpp.o:
+	$(MAKE) -f CMakeFiles/chebyshev.dir/build.make CMakeFiles/chebyshev.dir/chebyshev2.cpp.o
+.PHONY : chebyshev2.cpp.o
+
+chebyshev2.i: chebyshev2.cpp.i
+
+.PHONY : chebyshev2.i
+
+# target to preprocess a source file
+chebyshev2.cpp.i:
+	$(MAKE) -f CMakeFiles/chebyshev.dir/build.make CMakeFiles/chebyshev.dir/chebyshev2.cpp.i
+.PHONY : chebyshev2.cpp.i
+
+chebyshev2.s: chebyshev2.cpp.s
+
+.PHONY : chebyshev2.s
+
+# target to generate assembly for a file
+chebyshev2.cpp.s:
+	$(MAKE) -f CMakeFiles/chebyshev.dir/build.make CMakeFiles/chebyshev.dir/chebyshev2.cpp.s
+.PHONY : chebyshev2.cpp.s
 
 poly-eval.o: poly-eval.cpp.o
 
@@ -198,8 +278,16 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... cMatrix"
 	@echo "... poly-eval"
+	@echo "... chebyshev"
 	@echo "... prefix-sum"
+	@echo "... cMatrix.o"
+	@echo "... cMatrix.i"
+	@echo "... cMatrix.s"
+	@echo "... chebyshev2.o"
+	@echo "... chebyshev2.i"
+	@echo "... chebyshev2.s"
 	@echo "... poly-eval.o"
 	@echo "... poly-eval.i"
 	@echo "... poly-eval.s"

@@ -60,3 +60,5 @@ endif()
 
 add_executable( prefix-sum prefix-sum.cpp )
 add_executable( poly-eval poly-eval.cpp )
+add_executable( chebyshev chebyshev2.cpp )
+add_executable( cMatrix cMatrix.cpp )
