@@ -21,6 +21,7 @@ void printV(std::vector<int> v) {
 }
 
 //Internal matrix to abstract basic matrix functions into a matrix class
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
 class internalMatrix {
     private:
     std::vector<std::vector<std::complex<double>>> matrix;
@@ -53,8 +54,27 @@ class internalMatrix {
         }
     }
 
+    //initialise square matrix from existing square matrix (input in row concatenated form)
+    internalMatrix(std::vector<std::complex<double>> m) {
+        if (!(ceil((double)sqrt(m.size())) == floor((double)sqrt(m.size())))) {
+            throw "Not a square matrix";
+        }
+        this->matrix = {};
+        this->rowSize = std::sqrt(m.size());
+        this->colSize = this->rowSize;
+        unsigned int count = 0; 
+        for (int rowPos = 0; rowPos < this->rowSize; rowPos++) {
+            std::vector<std::complex<double>> row = {};
+            for (int colPos = 0; colPos < this->colSize; colPos++) {
+                row.push_back(m[count]);
+                count++;
+            }
+            matrix.push_back(row);
+        }
+    }
 
-    //initialise square matrix from existing square matrix (with slotsize padding)
+
+    //initialise square matrix from existing square matrix (with slotsize padding) *WIP
     internalMatrix(std::vector<std::vector<std::complex<double>>> m, unsigned int ringDim) {
         this->matrix = {};
         this->rowSize = ringDim/2; //ring dimension / 2 = slotsize
@@ -147,6 +167,7 @@ class internalMatrix {
     }
 };
 
+//External structure for taking in the cryptocontext and encoding and encryption
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 class cipherMatrix {
@@ -193,37 +214,43 @@ class cipherMatrix {
     //constructing from a vector of vector matrix
     cipherMatrix(std::vector<std::vector<std::complex<double>>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
     : cipherMatrix(internalMatrix(inputMatrix), cryptoContext){
-        for (int rotations = 1; rotations < this->matrix.getMaxDimension()+1; rotations ++) {
-            rotateIndexList.push_back(rotations);
-            rotateIndexList.push_back(-rotations);
-        }
-        cryptoContext->EvalRotateKeyGen(keys.secretKey, rotateIndexList);
+        setRotateIndexList();
     }
 
-    // cipherMatrix(std::vector<std::vector<std::complex<double>>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
-    // : cipherMatrix(internalMatrix(inputMatrix, cryptoContext->GetCryptoParameters()->GetElementParams()->GetRingDimension()), cryptoContext){
-    // }
+    //constructing from a vector of row concatenated form of matrix
+    cipherMatrix(std::vector<std::complex<double>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
+    : cipherMatrix(internalMatrix(inputMatrix), cryptoContext){
+        setRotateIndexList();
+    }
 
     //constructing from a internalMatrix
     cipherMatrix(internalMatrix inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherMatrix(cryptoContext) {
         matrix = inputMatrix;
-        for (int rotations = 1; rotations < this->matrix.getMaxDimension()+1; rotations ++) {
-            rotateIndexList.push_back(rotations);
-            rotateIndexList.push_back(-rotations);
-        }
-        cryptoContext->EvalRotateKeyGen(keys.secretKey, rotateIndexList);
+        setRotateIndexList();
+        decrypted = true;
+    }
+
+    //constructing from a ptext Matrix (must be square matrix, assume ptext matrix in concat row form)
+    cipherMatrix(Plaintext inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherMatrix(cryptoContext) {
+        auto concatRowInputMatrix = inputMatrix->GetCKKSPackedValue();
+        matrix = internalMatrix(concatRowInputMatrix);
+        setRotateIndexList();
         decrypted = true;
     }
 
     //constructing from a ciphertext matrix (only for matrix vector product)
     cipherMatrix(Ciphertext<DCRTPoly> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherMatrix(cryptoContext) {
         concatDiagVectorCipher = inputMatrix;
+        setRotateIndexList();
+        diagEncrypted = true;
+    }
+
+    void setRotateIndexList() {
         for (int rotations = 1; rotations < this->matrix.getMaxDimension()+1; rotations ++) {
             rotateIndexList.push_back(rotations);
             rotateIndexList.push_back(-rotations);
         }
         cryptoContext->EvalRotateKeyGen(keys.secretKey, rotateIndexList);
-        diagEncrypted = true;
     }
 
     KeyPair<DCRTPoly> getKeys() {
@@ -236,7 +263,6 @@ class cipherMatrix {
     }
 
     //Matrix Operations:
-    //---------------------------------------------------------------------------------------------------------------------------------------------
 
     //encode and encrypt a plaintext vector
     Ciphertext<DCRTPoly> encodeAndEncrypt(Plaintext vect) {
@@ -275,11 +301,27 @@ class cipherMatrix {
         return rowVectorCipher;
     }
 
+    //encode the rotation of the row concatenation of the matrix
+    Plaintext rotateEncode (int rotation) {
+        auto vect = matrix.getRowConcatenationVector();
+        std::rotate(vect.begin(), vect.begin() + rotation, vect.end());
+        auto rotatedVectorPlaintext = cryptoContext->MakeCKKSPackedPlaintext(vect);
+        return rotatedVectorPlaintext;
+    }
+
     //encode and encrypt the diagonal packing of the matrix
     Plaintext concatDiagEncode() {
         auto vect = matrix.getDiagonalConcatenationVector();
         this->concatDiagVectorPlaintext = cryptoContext->MakeCKKSPackedPlaintext(vect);
         return concatDiagVectorPlaintext;
+    }
+
+    //rotate the diagonal packing of the matrix, then encode and encrypt
+    Plaintext rotateConcatDiagEncode(int rotation) {
+        auto vect = matrix.getDiagonalConcatenationVector();
+        std::rotate(vect.begin(), vect.begin() + rotation, vect.end());
+        auto rotatedDiagVectorPlaintext = cryptoContext->MakeCKKSPackedPlaintext(vect);
+        return rotatedDiagVectorPlaintext;
     }
 
     //encode and encrypt the diagonal packing of the matrix
@@ -426,84 +468,118 @@ Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatr
         // std::cout << "rotated matrix: " << result << std::endl;
         std::rotate(filledVect.begin(), filledVect.begin()+1, filledVect.end());
         Plaintext rotatedPackedVector = cryptoContext->MakeCKKSPackedPlaintext(filledVect);
+        // std::cout << rotatedPackedVector << std::endl;
         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(rotatedConcatDiagPackMatrix, rotatedPackedVector));
     }
     return sum;
 }
 
+
+//ctext matrix with ctext vect
 Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
     auto filledVect = getFilledVector(vect, dimension, cryptoContext); 
     Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(concatDiagPackMatrix, filledVect);
+    Ciphertext<DCRTPoly> rotatedConcatDiagPackMatrix = concatDiagPackMatrix;
+    auto rotatedFilledVector = filledVect;
     // Plaintext result1;
     // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
-    Ciphertext<DCRTPoly> rotatedConcatDiagPackMatrix = concatDiagPackMatrix;
+    // std::cout << "original matrix: " << result1 << std::endl;
     for (int rotation = 1; rotation < dimension; rotation++) {
         rotatedConcatDiagPackMatrix = cryptoContext->EvalRotate(rotatedConcatDiagPackMatrix, dimension);
         // Plaintext result;
-        // cryptoContext->Decrypt(keys.secretKey, rotatedConcatDiagPackMatrix, &result);;
-        auto rotatedFilledVector = cryptoContext->EvalRotate(filledVect, 1);
+        // cryptoContext->Decrypt(keys.secretKey, rotatedConcatDiagPackMatrix, &result);
+        // std::cout << "rotated matrix: " << result << std::endl;
+        rotatedFilledVector = cryptoContext->EvalRotate(rotatedFilledVector, 1);
+        // Plaintext result2;
+        // cryptoContext->Decrypt(keys.secretKey, rotatedFilledVector, &result2);
+        // std::cout << "rotated vector: " << result2 << std::endl;
         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(rotatedConcatDiagPackMatrix, rotatedFilledVector));
     }
     return sum;
 }
 
-Ciphertext<DCRTPoly> matrixVectorProduct(Plaintext concatDiagPackMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+//ptext matrix with ctext vect, assume ptext matrix is in diagonal packing form already, else use rotateConcatDiagEncode() for rotation of ptext matrix instead
+Ciphertext<DCRTPoly> matrixVectorProduct(Plaintext PTMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+    //Check if is square matrix
+    if (!(ceil((double)sqrt(PTMatrix->GetLength())) == floor((double)sqrt(PTMatrix->GetLength())))) {
+        throw "Not a square matrix";
+    }
     auto filledVect = getFilledVector(vect, dimension, cryptoContext); 
-    Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(concatDiagPackMatrix, filledVect);
-    // Plaintext result1;
-    // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
-    Ciphertext<DCRTPoly> rotatedConcatDiagPackMatrix = concatDiagPackMatrix;
+    Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(PTMatrix, filledVect);
+    // std::cout << "original matrix: " << PTMatrix << std::endl;
+    cipherMatrix cMatrix = cipherMatrix(PTMatrix, cryptoContext);
+    Plaintext rotatedConcatDiagPackMatrix = PTMatrix;
     for (int rotation = 1; rotation < dimension; rotation++) {
-        rotatedConcatDiagPackMatrix = cryptoContext->EvalRotate(rotatedConcatDiagPackMatrix, dimension);
-        // Plaintext result;
-        // cryptoContext->Decrypt(keys.secretKey, rotatedConcatDiagPackMatrix, &result);;
-        auto rotatedFilledVector = cryptoContext->EvalRotate(filledVect, 1);
+        rotatedConcatDiagPackMatrix = cMatrix.rotateEncode(rotation*dimension);
+        // std::cout << "rotated matrix: " << rotatedConcatDiagPackMatrix << std::endl;
+        auto rotatedFilledVector = cryptoContext->EvalRotate(filledVect, rotation);
+        // Plaintext result2;
+        // cryptoContext->Decrypt(keys.secretKey, rotatedFilledVector, &result2);
+        // std::cout << "rotated vector: " << result2 << std::endl;
         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(rotatedConcatDiagPackMatrix, rotatedFilledVector));
     }
     return sum;
 }
-
-
 
 int main() {
     //Setting cryptoContext parameters
     CCParams<CryptoContextCKKSRNS> parameters;
     parameters.SetSecurityLevel(HEStd_NotSet);
     parameters.SetPlaintextModulus(257); // p
-    parameters.SetRingDim(32); // n =  m/2
+    parameters.SetRingDim(128); // n =  m/2
     parameters.SetMultiplicativeDepth(6);
     parameters.SetScalingModSize(50);
     CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
 
     //Setting matrix and vector values
-    std::vector<std::vector<std::complex<double>>> matrix = {{1,2,3,4}, {5,6,7,8}, {9,10,11,12}, {13,14,15,16}};
-    std::vector<std::complex<double>> vect = {1,2,3,4};
+    std::vector<std::vector<std::complex<double>>> matrix = {{1,2,3,4,4,4,4,4}, {5,6,7,8,8,8,8,8}, {9,10,11,12,12,12,12,12}, {13,14,15,16,16,16,16,16},{1,2,3,4,4,4,4,4}, {5,6,7,8,8,8,8,8}, {9,10,11,12,12,12,12,12}, {13,14,15,16,16,16,16,16}};
+    std::vector<std::complex<double>> vect = {1,2,3,4,5,6,7,8};
 
     //creating formats for matrix and vector
     Plaintext PTvect = cc->MakeCKKSPackedPlaintext(vect);
     cipherMatrix m1 = cipherMatrix(matrix, cc);
+    Plaintext PTMatrix = m1.concatDiagEncode();
     Ciphertext<DCRTPoly> CTvect = cc->Encrypt(m1.getKeys().publicKey, PTvect);
     Ciphertext<DCRTPoly> cipherM = m1.concatDiagEncodeAndEncrypt();
 
     //Calculate matrix vector products:
 
     //Cipher matrix, plaintext vector
-    auto temp = matrixVectorProduct(cipherM, PTvect, cc, 4, m1.getKeys());
-    Plaintext result;
-    cc->Decrypt(m1.getKeys().secretKey, temp, &result);
-    std::cout << result << std::endl;
+    try {
+        auto temp = matrixVectorProduct(cipherM, PTvect, cc, 8, m1.getKeys());
+        Plaintext result;
+        cc->Decrypt(m1.getKeys().secretKey, temp, &result);
+        std::cout << "Cipher matrix multiplied with plaintext vector: " << std::endl;
+        std::cout << result << std::endl;
+        std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+    } catch (char const* err) {
+        std::cout << err << std::endl;
+    }
 
     //Cipher matrix, cipher vector
-    auto temp2 = matrixVectorProduct(cipherM, CTvect, cc, 4, m1.getKeys());
-    Plaintext result2;
-    cc->Decrypt(m1.getKeys().secretKey, temp, &result2);
-    std::cout << result2 << std::endl;
+    try {
+        auto temp2 = matrixVectorProduct(cipherM, CTvect, cc, 8, m1.getKeys());
+        Plaintext result2;
+        cc->Decrypt(m1.getKeys().secretKey, temp2, &result2);
+        std::cout << "Cipher matrix multiplied with cipher vector: " << std::endl;
+        std::cout << result2 << std::endl;
+        std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+    } catch (char const* err) {
+        std::cout << err << std::endl;
+    }
+
 
     //Plaintext matrix, cipher vector
-    auto temp2 = matrixVectorProduct(cipherM, CTvect, cc, 4, m1.getKeys());
-    Plaintext result2;
-    cc->Decrypt(m1.getKeys().secretKey, temp, &result2);
-    std::cout << result2 << std::endl;
+    try {
+        auto temp3 = matrixVectorProduct(PTMatrix, CTvect, cc, 8, m1.getKeys());
+        Plaintext result3;
+        cc->Decrypt(m1.getKeys().secretKey, temp3, &result3);
+        std::cout << "Plaintext matrix multiplied with plaintext vector: " << std::endl;
+        std::cout << result3 << std::endl;
+        std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+    } catch (char const* err) {
+        std::cout << err << std::endl;
+    }
 
     //Check results of encoding and encryption
     // m1.diagonalEncodeAndEncrypt();
