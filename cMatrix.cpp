@@ -170,7 +170,7 @@ class internalMatrix {
 //External structure for taking in the cryptocontext and encoding and encryption
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
-class cipherMatrix {
+class cipherTensor { //can jus convert the various storing of forms into jus a flag bcos will only ever be 1 form at a time
     private:
 
     //data-storing variables
@@ -180,8 +180,9 @@ class cipherMatrix {
     std::vector<int> rotateIndexList = {};
     KeyPair<DCRTPoly> keys;
 
+// TODO:
     std::vector<Plaintext> diagVectorPlaintexts;
-    std::vector<Ciphertext<DCRTPoly>> diagVectorCiphers;
+    std::vector<Ciphertext<DCRTPoly>> diagVectorCiphers; //if vector can jus make it size 1 of the vect cipertexts
 
     Plaintext rowVectorPlaintext;
     Ciphertext<DCRTPoly> rowVectorCipher;
@@ -199,7 +200,7 @@ class cipherMatrix {
 
     private:
     //standard constructor steps to set up cryptoContext
-    cipherMatrix(CryptoContext<DCRTPoly> cryptoContext) {
+    cipherTensor(CryptoContext<DCRTPoly> cryptoContext) {
         this->cryptoContext = cryptoContext;
         cryptoContext->Enable(PKE);
         cryptoContext->Enable(KEYSWITCH);
@@ -212,26 +213,26 @@ class cipherMatrix {
 
     public:
     //constructing from a vector of vector matrix
-    cipherMatrix(std::vector<std::vector<std::complex<double>>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
-    : cipherMatrix(internalMatrix(inputMatrix), cryptoContext){
+    cipherTensor(std::vector<std::vector<std::complex<double>>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
+    : cipherTensor(internalMatrix(inputMatrix), cryptoContext){
         setRotateIndexList();
     }
 
     //constructing from a vector of row concatenated form of matrix
-    cipherMatrix(std::vector<std::complex<double>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
-    : cipherMatrix(internalMatrix(inputMatrix), cryptoContext){
+    cipherTensor(std::vector<std::complex<double>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
+    : cipherTensor(internalMatrix(inputMatrix), cryptoContext){
         setRotateIndexList();
     }
 
     //constructing from a internalMatrix
-    cipherMatrix(internalMatrix inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherMatrix(cryptoContext) {
+    cipherTensor(internalMatrix inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherTensor(cryptoContext) {
         matrix = inputMatrix;
         setRotateIndexList();
         decrypted = true;
     }
 
     //constructing from a ptext Matrix (must be square matrix, assume ptext matrix in concat row form)
-    cipherMatrix(Plaintext inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherMatrix(cryptoContext) {
+    cipherTensor(Plaintext inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherTensor(cryptoContext) {
         auto concatRowInputMatrix = inputMatrix->GetCKKSPackedValue();
         matrix = internalMatrix(concatRowInputMatrix);
         setRotateIndexList();
@@ -239,7 +240,7 @@ class cipherMatrix {
     }
 
     //constructing from a ciphertext matrix (only for matrix vector product)
-    cipherMatrix(Ciphertext<DCRTPoly> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherMatrix(cryptoContext) {
+    cipherTensor(Ciphertext<DCRTPoly> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) : cipherTensor(cryptoContext) {
         concatDiagVectorCipher = inputMatrix;
         setRotateIndexList();
         diagEncrypted = true;
@@ -360,6 +361,11 @@ class cipherMatrix {
 
 };
 
+//Non-class functions:
+//1. getFilledVector(): pack plaintext full with the vector
+//2. generateTransformMatrix: For generating the transform matrices inn matrix-matrix multiplication
+//3. matrixVectorProduct: Function to do matrix-vector mulltiplicaton (where matrix is square matrix)
+
 enum transformMatrixTypes {
     sigma,
     tau,
@@ -441,7 +447,7 @@ std::vector<std::complex<double>> generateTransformMatrix(transformMatrixTypes t
         case sigma:
             return generateSigmaMatrix(diagonalNum, dimension);
             break;
-        case tau:
+        case tau:x
             break;
         case rowShift:
             break;
@@ -477,22 +483,25 @@ Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatr
 
 //ctext matrix with ctext vect
 Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
-    auto filledVect = getFilledVector(vect, dimension, cryptoContext); 
+    auto filledVect = getFilledVector(vect, dimension, cryptoContext); // TODO: all vectors will be encoded+encrypted duplicated
     Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(concatDiagPackMatrix, filledVect);
     Ciphertext<DCRTPoly> rotatedConcatDiagPackMatrix = concatDiagPackMatrix;
     auto rotatedFilledVector = filledVect;
-    // Plaintext result1;
-    // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
-    // std::cout << "original matrix: " << result1 << std::endl;
+    Plaintext result4;
+    cryptoContext->Decrypt(keys.secretKey, filledVect, &result4);
+    std::cout << "original filled vector: " << result4 << std::endl;
+    Plaintext result1;
+    cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+    std::cout << "original matrix: " << result1 << std::endl;
     for (int rotation = 1; rotation < dimension; rotation++) {
         rotatedConcatDiagPackMatrix = cryptoContext->EvalRotate(rotatedConcatDiagPackMatrix, dimension);
-        // Plaintext result;
-        // cryptoContext->Decrypt(keys.secretKey, rotatedConcatDiagPackMatrix, &result);
-        // std::cout << "rotated matrix: " << result << std::endl;
+        Plaintext result;
+        cryptoContext->Decrypt(keys.secretKey, rotatedConcatDiagPackMatrix, &result);
+        std::cout << "rotated matrix: " << result << std::endl;
         rotatedFilledVector = cryptoContext->EvalRotate(rotatedFilledVector, 1);
-        // Plaintext result2;
-        // cryptoContext->Decrypt(keys.secretKey, rotatedFilledVector, &result2);
-        // std::cout << "rotated vector: " << result2 << std::endl;
+        Plaintext result2;
+        cryptoContext->Decrypt(keys.secretKey, rotatedFilledVector, &result2);
+        std::cout << "rotated vector: " << result2 << std::endl;
         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(rotatedConcatDiagPackMatrix, rotatedFilledVector));
     }
     return sum;
@@ -507,7 +516,7 @@ Ciphertext<DCRTPoly> matrixVectorProduct(Plaintext PTMatrix, Ciphertext<DCRTPoly
     auto filledVect = getFilledVector(vect, dimension, cryptoContext); 
     Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(PTMatrix, filledVect);
     // std::cout << "original matrix: " << PTMatrix << std::endl;
-    cipherMatrix cMatrix = cipherMatrix(PTMatrix, cryptoContext);
+    cipherTensor cMatrix = cipherTensor(PTMatrix, cryptoContext);
     Plaintext rotatedConcatDiagPackMatrix = PTMatrix;
     for (int rotation = 1; rotation < dimension; rotation++) {
         rotatedConcatDiagPackMatrix = cMatrix.rotateEncode(rotation*dimension);
@@ -532,12 +541,12 @@ int main() {
     CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
 
     //Setting matrix and vector values
-    std::vector<std::vector<std::complex<double>>> matrix = {{1,2,3,4,4,4,4,4}, {5,6,7,8,8,8,8,8}, {9,10,11,12,12,12,12,12}, {13,14,15,16,16,16,16,16},{1,2,3,4,4,4,4,4}, {5,6,7,8,8,8,8,8}, {9,10,11,12,12,12,12,12}, {13,14,15,16,16,16,16,16}};
-    std::vector<std::complex<double>> vect = {1,2,3,4,5,6,7,8};
+    std::vector<std::vector<std::complex<double>>> matrix = {{1,2,3,4}, {5,6,7,8}, {9,10,11,12}, {13,14,15,16}};
+    std::vector<std::complex<double>> vect = {1,2,3,4};
 
     //creating formats for matrix and vector
     Plaintext PTvect = cc->MakeCKKSPackedPlaintext(vect);
-    cipherMatrix m1 = cipherMatrix(matrix, cc);
+    cipherTensor m1 = cipherTensor(matrix, cc);
     Plaintext PTMatrix = m1.concatDiagEncode();
     Ciphertext<DCRTPoly> CTvect = cc->Encrypt(m1.getKeys().publicKey, PTvect);
     Ciphertext<DCRTPoly> cipherM = m1.concatDiagEncodeAndEncrypt();
@@ -546,7 +555,7 @@ int main() {
 
     //Cipher matrix, plaintext vector
     try {
-        auto temp = matrixVectorProduct(cipherM, PTvect, cc, 8, m1.getKeys());
+        auto temp = matrixVectorProduct(cipherM, PTvect, cc, 4, m1.getKeys());
         Plaintext result;
         cc->Decrypt(m1.getKeys().secretKey, temp, &result);
         std::cout << "Cipher matrix multiplied with plaintext vector: " << std::endl;
@@ -558,7 +567,7 @@ int main() {
 
     //Cipher matrix, cipher vector
     try {
-        auto temp2 = matrixVectorProduct(cipherM, CTvect, cc, 8, m1.getKeys());
+        auto temp2 = matrixVectorProduct(cipherM, CTvect, cc, 4, m1.getKeys());
         Plaintext result2;
         cc->Decrypt(m1.getKeys().secretKey, temp2, &result2);
         std::cout << "Cipher matrix multiplied with cipher vector: " << std::endl;
@@ -571,10 +580,10 @@ int main() {
 
     //Plaintext matrix, cipher vector
     try {
-        auto temp3 = matrixVectorProduct(PTMatrix, CTvect, cc, 8, m1.getKeys());
+        auto temp3 = matrixVectorProduct(PTMatrix, CTvect, cc, 4, m1.getKeys());
         Plaintext result3;
         cc->Decrypt(m1.getKeys().secretKey, temp3, &result3);
-        std::cout << "Plaintext matrix multiplied with plaintext vector: " << std::endl;
+        std::cout << "Plaintext matrix multiplied with cipher vector: " << std::endl;
         std::cout << result3 << std::endl;
         std::cout << "-----------------------------------------------------------------------------------" << std::endl;
     } catch (char const* err) {
@@ -588,4 +597,12 @@ int main() {
 }
 
     
+    //if vector ned duplicate by itself
 
+
+//TODO: 
+//1. change to have a packed vectors form where vector of ctexts/ptexts for matrix
+//2. make a function that just immediately converts from vector to ciphertext
+//3. can try use typedef to change std::complex<double> to like D or smthing (more readable)
+//4. internal matrix can keep as is (maybe abstract out into header file)
+//5. ciphertensor is the interface for ppl working on the code so keep that in mind
