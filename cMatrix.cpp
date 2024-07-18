@@ -5,8 +5,11 @@
 
 using namespace lbcrypto;
 
+//Rename std::complex<double> to dbl
+typedef std::complex<double> dbl;
+
 //Function to print out contents of a vector
-void printV(std::vector<std::complex<double>> v) {
+void printV(std::vector<dbl> v) {
     for (auto i : v) {
         std::cout << i << ",";
     }
@@ -20,11 +23,27 @@ void printV(std::vector<int> v) {
     std::cout << std::endl;
 }
 
+void printV(std::vector<Plaintext> v) {
+    for (auto i : v) {
+        std::cout << i << ",";
+    }
+    std::cout << std::endl;
+}
+
+void printV(std::vector<Ciphertext<DCRTPoly>> v, CryptoContext<DCRTPoly> cc, KeyPair<DCRTPoly> keys) {
+    for (auto i : v) {
+        Plaintext result;
+        cc->Decrypt(keys.secretKey, i, &result);
+        std::cout << result << ",";
+    }
+    std::cout << std::endl;
+}
+
 //Internal matrix to abstract basic matrix functions into a matrix class
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 class internalMatrix {
     private:
-    std::vector<std::vector<std::complex<double>>> matrix;
+    std::vector<std::vector<dbl>> matrix;
     unsigned int rowSize;
     unsigned int colSize;
 
@@ -38,24 +57,24 @@ class internalMatrix {
     //initialise zeros matrix of specified size
     internalMatrix(unsigned int row, unsigned int col) {
         //default value is 0
-        matrix.resize(row, std::vector<std::complex<double>>(col, 0.0)); 
+        matrix.resize(row, std::vector<dbl>(col, 0.0)); 
         this->rowSize = row;
         this->colSize = col;
     }
 
     //initialise square matrix from existing square matrix (wo slotsize padding)
-    internalMatrix(std::vector<std::vector<std::complex<double>>> m) {
+    internalMatrix(std::vector<std::vector<dbl>> m) {
         this->matrix = {};
         this->rowSize = m.size();
         this->colSize = m[0].size();
         for (auto v : m) {
-            auto temp = std::vector<std::complex<double>>(v);
+            auto temp = std::vector<dbl>(v);
             matrix.push_back(temp);
         }
     }
 
     //initialise square matrix from existing square matrix (input in row concatenated form)
-    internalMatrix(std::vector<std::complex<double>> m) {
+    internalMatrix(std::vector<dbl> m) {
         if (!(ceil((double)sqrt(m.size())) == floor((double)sqrt(m.size())))) {
             throw "Not a square matrix";
         }
@@ -64,7 +83,7 @@ class internalMatrix {
         this->colSize = this->rowSize;
         unsigned int count = 0; 
         for (int rowPos = 0; rowPos < this->rowSize; rowPos++) {
-            std::vector<std::complex<double>> row = {};
+            std::vector<dbl> row = {};
             for (int colPos = 0; colPos < this->colSize; colPos++) {
                 row.push_back(m[count]);
                 count++;
@@ -75,21 +94,21 @@ class internalMatrix {
 
 
     //initialise square matrix from existing square matrix (with slotsize padding) *WIP
-    internalMatrix(std::vector<std::vector<std::complex<double>>> m, unsigned int ringDim) {
+    internalMatrix(std::vector<std::vector<dbl>> m, unsigned int ringDim) {
         this->matrix = {};
         this->rowSize = ringDim/2; //ring dimension / 2 = slotsize
         this->colSize = ringDim/2;
         for (auto v : m) {
-            auto temp = std::vector<std::complex<double>>(v);
+            auto temp = std::vector<dbl>(v);
             temp.resize(rowSize, 0.0); //auto pad any row of matrix without enough elements with 0s
             matrix.push_back(temp);
         }
-        matrix.resize(colSize, std::vector<std::complex<double>>(rowSize, 0.0));
+        matrix.resize(colSize, std::vector<dbl>(rowSize, 0.0));
     }
 
     //Getter/Setter methods
-    std::vector<std::vector<std::complex<double>>> getMatrix() {
-        return std::vector<std::vector<std::complex<double>>>(matrix);
+    std::vector<std::vector<dbl>> getMatrix() {
+        return std::vector<std::vector<dbl>>(matrix);
     }
 
     unsigned int getMaxDimension() {
@@ -108,11 +127,11 @@ class internalMatrix {
         return this->rowSize;
     }
 
-    std::vector<std::complex<double>> getRow(unsigned int pos) {
+    std::vector<dbl> getRow(unsigned int pos) {
         return this->matrix[pos];
     }
 
-    std::complex<double> getElem(unsigned int row, unsigned int col) {
+    dbl getElem(unsigned int row, unsigned int col) {
         return matrix[row][col];
     }
 
@@ -121,10 +140,10 @@ class internalMatrix {
     }
 
     //Obtain diagonal packing format
-    std::vector<std::vector<std::complex<double>>> getDiagonalVectors() {
-        std::vector<std::vector<std::complex<double>>> diagPackVector = {};
+    std::vector<std::vector<dbl>> getDiagonalVectors() {
+        std::vector<std::vector<dbl>> diagPackVector = {};
         for (int row = 0; row < getRowSize(); row++) {
-            std::vector<std::complex<double>> temp = {};
+            std::vector<dbl> temp = {};
             for (int col = 0; col < getColSize(); col++) {
                 temp.push_back(getElem(col, (col + row) % getColSize()));
             }
@@ -134,8 +153,8 @@ class internalMatrix {
     }
 
     //Obtain diagonal concatenation packing format
-    std::vector<std::complex<double>> getDiagonalConcatenationVector() {
-        std::vector<std::complex<double>> diagPackVector = {};
+    std::vector<dbl> getDiagonalConcatenationVector() {
+        std::vector<dbl> diagPackVector = {};
         for (int row = 0; row < getRowSize(); row++) {
             for (int col = 0; col < getColSize(); col++) {
                 diagPackVector.push_back(getElem(col, (col + row) % getColSize()));
@@ -145,8 +164,8 @@ class internalMatrix {
     }
 
     //Obtain row packing format
-    std::vector<std::complex<double>> getRowConcatenationVector() {
-        std::vector<std::complex<double>> rowPackVector = {};
+    std::vector<dbl> getRowConcatenationVector() {
+        std::vector<dbl> rowPackVector = {};
         for (int row = 0; row < getRowSize(); row++) {
             for (int col = 0; col < getColSize(); col++) {
                 rowPackVector.push_back(getElem(row,col));
@@ -180,7 +199,6 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
     std::vector<int> rotateIndexList = {};
     KeyPair<DCRTPoly> keys;
 
-// TODO:
     std::vector<Plaintext> diagVectorPlaintexts;
     std::vector<Ciphertext<DCRTPoly>> diagVectorCiphers; //if vector can jus make it size 1 of the vect cipertexts
 
@@ -213,13 +231,13 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
 
     public:
     //constructing from a vector of vector matrix
-    cipherTensor(std::vector<std::vector<std::complex<double>>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
+    cipherTensor(std::vector<std::vector<dbl>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
     : cipherTensor(internalMatrix(inputMatrix), cryptoContext){
         setRotateIndexList();
     }
 
     //constructing from a vector of row concatenated form of matrix
-    cipherTensor(std::vector<std::complex<double>> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
+    cipherTensor(std::vector<dbl> inputMatrix, CryptoContext<DCRTPoly> cryptoContext) 
     : cipherTensor(internalMatrix(inputMatrix), cryptoContext){
         setRotateIndexList();
     }
@@ -265,16 +283,34 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
 
     //Matrix Operations:
 
-    //encode and encrypt a plaintext vector
-    Ciphertext<DCRTPoly> encodeAndEncrypt(Plaintext vect) {
+    //encode std::vector vector
+    Plaintext encode(std::vector<dbl> vect) {
+        Plaintext PTVect = cryptoContext->MakeCKKSPackedPlaintext(vect);
+        return PTVect;
+    }
+
+    //encrypt a plaintext vector
+    Ciphertext<DCRTPoly> encrypt(Plaintext vect) {
         Ciphertext<DCRTPoly> cipherVect = cryptoContext->Encrypt(keys.publicKey, vect);
         return cipherVect;
     }
 
     //encode and encrypt a single vector
-    Ciphertext<DCRTPoly> encodeAndEncrypt(std::vector<std::complex<double>> vect) {
+    Ciphertext<DCRTPoly> encodeAndEncrypt(std::vector<dbl> vect) {
         Plaintext plaintext = cryptoContext->MakeCKKSPackedPlaintext(vect);
-        return encodeAndEncrypt(plaintext);
+        return encrypt(plaintext);
+    }
+
+    //encode the diagonal packing of the matrix
+    std::vector<Plaintext> diagonalEncode() {
+        if (diagEncrypted) {
+            return diagVectorPlaintexts;
+        }
+        std::vector<std::vector<dbl>> diagVectors = matrix.getDiagonalVectors();
+        for (auto vector : diagVectors) {
+            diagVectorPlaintexts.push_back(encode(vector));
+        }
+        return diagVectorPlaintexts;
     }
 
     //encode and encrypt the diagonal packing of the matrix
@@ -282,7 +318,7 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
         if (diagEncrypted) {
             return diagVectorCiphers;
         }
-        std::vector<std::vector<std::complex<double>>> diagVectors = matrix.getDiagonalVectors();
+        std::vector<std::vector<dbl>> diagVectors = matrix.getDiagonalVectors();
         for (auto vector : diagVectors) {
             diagVectorCiphers.push_back(encodeAndEncrypt(vector));
         }
@@ -330,7 +366,7 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
         if (diagEncrypted) {
             return concatDiagVectorCipher;
         }
-        this->concatDiagVectorCipher = encodeAndEncrypt(concatDiagEncode());
+        this->concatDiagVectorCipher = encrypt(concatDiagEncode());
         diagEncrypted = true;
         return concatDiagVectorCipher;
     }
@@ -364,7 +400,7 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
 //Non-class functions:
 //1. getFilledVector(): pack plaintext full with the vector
 //2. generateTransformMatrix: For generating the transform matrices inn matrix-matrix multiplication
-//3. matrixVectorProduct: Function to do matrix-vector mulltiplicaton (where matrix is square matrix)
+//3. concatMatrixVectorProduct: Function to do matrix-vector mulltiplicaton (where matrix is square matrix)
 
 enum transformMatrixTypes {
     sigma,
@@ -373,10 +409,17 @@ enum transformMatrixTypes {
     colShift
 };
 
+//encode and encrypt a vector
+Ciphertext<DCRTPoly> vectEncodeAndEncrypt(std::vector<dbl> vect, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys) {
+    auto PTVect = cryptoContext->MakeCKKSPackedPlaintext(vect);
+    auto CTVect = cryptoContext->Encrypt(keys.publicKey, PTVect);
+    return CTVect;
+}
+
 //fill to slotsize for std::vector vector
-std::vector<std::complex<double>> getFilledVector(std::vector<std::complex<double>> vect, unsigned int dimension, CryptoContext<DCRTPoly> cryptoContext) {
+std::vector<dbl> getFilledVector(std::vector<dbl> vect, unsigned int dimension, CryptoContext<DCRTPoly> cryptoContext) {
     unsigned int slotsize = dimension * dimension;
-    std::vector<std::complex<double>> resultVect = std::vector<std::complex<double>>(slotsize);
+    std::vector<dbl> resultVect = std::vector<dbl>(slotsize);
     unsigned int vectSize = vect.size();
     for (int iteration = 0; iteration < slotsize/vectSize; iteration++) {
         for (int pos = 0; pos < vectSize; pos++) {
@@ -398,7 +441,7 @@ Ciphertext<DCRTPoly> getFilledVector(Ciphertext<DCRTPoly> vect, unsigned int dim
         vect = cryptoContext->EvalAdd(vect, vectCopy);
     }
     int overflow = slotsize - ((slotsize/dimension) * (dimension-1));
-    std::vector<std::complex<double>> mask = {};
+    std::vector<dbl> mask = {};
     for (int pos = 0; pos < slotsize; pos++) {
         if (pos < overflow) {
             mask.push_back(1);
@@ -413,10 +456,21 @@ Ciphertext<DCRTPoly> getFilledVector(Ciphertext<DCRTPoly> vect, unsigned int dim
     return result;
 }
 
+//helper function for testing, create the packed vector for packedMatrixVector product
+std::vector<std::vector<dbl>> getPackedVector(std::vector<dbl> vect) {
+    std::vector<std::vector<dbl>> packedVector = {};
+    packedVector.push_back(vect);
+    for (int rotation = 1; rotation < vect.size(); rotation++) {
+        std::rotate(vect.begin(), vect.begin()+1, vect.end());
+        packedVector.push_back(vect);
+    }
+    return packedVector;
+}
+
 //Algo for generating sigma transform matrix
-std::vector<std::complex<double>> generateSigmaMatrix(int diagonalNum, unsigned int dimension) {
+std::vector<dbl> generateSigmaMatrix(int diagonalNum, unsigned int dimension) {
     unsigned int size = dimension * dimension;
-    std::vector<std::complex<double>> transformMatrix = std::vector<std::complex<double>>(size);
+    std::vector<dbl> transformMatrix = std::vector<dbl>(size);
     if (diagonalNum >= 0) {
         for (int pos = 0; pos < size; pos++) {
             int checkFormula = pos - dimension * diagonalNum;
@@ -440,14 +494,14 @@ std::vector<std::complex<double>> generateSigmaMatrix(int diagonalNum, unsigned 
 }
 
 //dimension is the length of a row/col in the square matrix
-std::vector<std::complex<double>> generateTransformMatrix(transformMatrixTypes type, int diagonalNum, unsigned int dimension) {
+std::vector<dbl> generateTransformMatrix(transformMatrixTypes type, int diagonalNum, unsigned int dimension) {
     unsigned int size = dimension * dimension;
-    std::vector<std::complex<double>> transformMatrix = std::vector<std::complex<double>>(size);
+    std::vector<dbl> transformMatrix = std::vector<dbl>(size);
     switch(type) {
         case sigma:
             return generateSigmaMatrix(diagonalNum, dimension);
             break;
-        case tau:x
+        case tau:
             break;
         case rowShift:
             break;
@@ -458,8 +512,8 @@ std::vector<std::complex<double>> generateTransformMatrix(transformMatrixTypes t
 }
 
 //Assume cipher matrix is in concatenated diagonal packing form, matrix cipher length = l^2, vector length = l
-Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatrix, Plaintext vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
-    std::vector<std::complex<double>> originalVect = vect->GetCKKSPackedValue();
+Ciphertext<DCRTPoly> concatMatrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatrix, Plaintext vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+    std::vector<dbl> originalVect = vect->GetCKKSPackedValue();
     auto filledVect = getFilledVector(originalVect, dimension, cryptoContext);
     Plaintext packedVect = cryptoContext->MakeCKKSPackedPlaintext(filledVect);
     Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(concatDiagPackMatrix, packedVect);
@@ -482,8 +536,8 @@ Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatr
 
 
 //ctext matrix with ctext vect
-Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
-    auto filledVect = getFilledVector(vect, dimension, cryptoContext); // TODO: all vectors will be encoded+encrypted duplicated
+Ciphertext<DCRTPoly> concatMatrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+    auto filledVect = getFilledVector(vect, dimension, cryptoContext);
     Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(concatDiagPackMatrix, filledVect);
     Ciphertext<DCRTPoly> rotatedConcatDiagPackMatrix = concatDiagPackMatrix;
     auto rotatedFilledVector = filledVect;
@@ -508,7 +562,7 @@ Ciphertext<DCRTPoly> matrixVectorProduct(Ciphertext<DCRTPoly> concatDiagPackMatr
 }
 
 //ptext matrix with ctext vect, assume ptext matrix is in diagonal packing form already, else use rotateConcatDiagEncode() for rotation of ptext matrix instead
-Ciphertext<DCRTPoly> matrixVectorProduct(Plaintext PTMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+Ciphertext<DCRTPoly> concatMatrixVectorProduct(Plaintext PTMatrix, Ciphertext<DCRTPoly> vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
     //Check if is square matrix
     if (!(ceil((double)sqrt(PTMatrix->GetLength())) == floor((double)sqrt(PTMatrix->GetLength())))) {
         throw "Not a square matrix";
@@ -530,6 +584,50 @@ Ciphertext<DCRTPoly> matrixVectorProduct(Plaintext PTMatrix, Ciphertext<DCRTPoly
     return sum;
 }
 
+//Assume cipher matrix is in concatenated diagonal packing form, matrix cipher length = l^2, vector length = l
+Ciphertext<DCRTPoly> packedMatrixVectorProduct(std::vector<Ciphertext<DCRTPoly>> diagPackMatrix, std::vector<Plaintext> vect, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys) {
+
+    unsigned int dimension = vect.size();
+    printV(vect);
+    printV(diagPackMatrix, cryptoContext, keys);
+
+    Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(diagPackMatrix[0], vect[0]);
+    // Plaintext result1;
+    // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+    // std::cout << "original matrix: " << result1 << std::endl;
+    for (int rotation = 1; rotation < dimension; rotation++) {
+        sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(diagPackMatrix[rotation], vect[rotation]));
+    }
+    return sum;
+}
+
+
+//ctext matrix with ctext vect
+Ciphertext<DCRTPoly> packedMatrixVectorProduct(std::vector<Ciphertext<DCRTPoly>> diagPackMatrix, std::vector<Ciphertext<DCRTPoly>> vect, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys) {
+    unsigned int dimension = vect.size();
+    Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(diagPackMatrix[0], vect[0]);
+    // Plaintext result1;
+    // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+    // std::cout << "original matrix: " << result1 << std::endl;
+    for (int rotation = 1; rotation < dimension; rotation++) {
+        sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(diagPackMatrix[rotation], vect[rotation]));
+    }
+    return sum;
+}
+
+//ptext matrix with ctext vect, assume ptext matrix is in diagonal packing form already, else use rotateConcatDiagEncode() for rotation of ptext matrix instead
+Ciphertext<DCRTPoly> packedMatrixVectorProduct(std::vector<Plaintext> PTMatrix, std::vector<Ciphertext<DCRTPoly>> vect, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys) {
+    unsigned int dimension = PTMatrix.size();
+    Ciphertext<DCRTPoly> sum = cryptoContext->EvalMult(PTMatrix[0], vect[0]);
+    // Plaintext result1;
+    // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+    // std::cout << "original matrix: " << result1 << std::endl;
+    for (int rotation = 1; rotation < dimension; rotation++) {
+        sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(PTMatrix[rotation], vect[rotation]));
+    }
+    return sum;
+}
+
 int main() {
     //Setting cryptoContext parameters
     CCParams<CryptoContextCKKSRNS> parameters;
@@ -541,21 +639,69 @@ int main() {
     CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
 
     //Setting matrix and vector values
-    std::vector<std::vector<std::complex<double>>> matrix = {{1,2,3,4}, {5,6,7,8}, {9,10,11,12}, {13,14,15,16}};
-    std::vector<std::complex<double>> vect = {1,2,3,4};
+    std::vector<std::vector<dbl>> matrix = {{1,2,3,4}, {5,6,7,8}, {9,10,11,12}, {13,14,15,16}};
+    std::vector<dbl> vect = {1,2,3,4};
 
     //creating formats for matrix and vector
-    Plaintext PTvect = cc->MakeCKKSPackedPlaintext(vect);
+    auto packedVectors = getPackedVector(vect);
+    std::vector<Plaintext> PTVector = {};
+    std::vector<Ciphertext<DCRTPoly>> CTVector = {};
+
     cipherTensor m1 = cipherTensor(matrix, cc);
-    Plaintext PTMatrix = m1.concatDiagEncode();
-    Ciphertext<DCRTPoly> CTvect = cc->Encrypt(m1.getKeys().publicKey, PTvect);
-    Ciphertext<DCRTPoly> cipherM = m1.concatDiagEncodeAndEncrypt();
+    std::vector<Plaintext> PTMatrix = m1.diagonalEncode();
+    std::vector<Ciphertext<DCRTPoly>> CTMatrix = m1.diagonalEncodeAndEncrypt();
+
+    for (auto v : packedVectors) {
+        Plaintext PTVect = cc->MakeCKKSPackedPlaintext(v);
+        PTVector.push_back(PTVect);
+        CTVector.push_back(cc->Encrypt(m1.getKeys().publicKey, PTVect));
+    }
 
     //Calculate matrix vector products:
 
+    // //Cipher matrix, plaintext vector
+    // try {
+    //     auto temp = concatMatrixVectorProduct(cipherM, PTvect, cc, 4, m1.getKeys());
+    //     Plaintext result;
+    //     cc->Decrypt(m1.getKeys().secretKey, temp, &result);
+    //     std::cout << "Cipher matrix multiplied with plaintext vector: " << std::endl;
+    //     std::cout << result << std::endl;
+    //     std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+    // } catch (char const* err) {
+    //     std::cout << err << std::endl;
+    // }
+
+    // //Cipher matrix, cipher vector
+    // try {
+    //     auto temp2 = concatMatrixVectorProduct(cipherM, CTvect, cc, 4, m1.getKeys());
+    //     Plaintext result2;
+    //     cc->Decrypt(m1.getKeys().secretKey, temp2, &result2);
+    //     std::cout << "Cipher matrix multiplied with cipher vector: " << std::endl;
+    //     std::cout << result2 << std::endl;
+    //     std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+    // } catch (char const* err) {
+    //     std::cout << err << std::endl;
+    // }
+
+
+    // //Plaintext matrix, cipher vector
+    // try {
+    //     auto temp3 = concatMatrixVectorProduct(PTMatrix, CTvect, cc, 4, m1.getKeys());
+    //     Plaintext result3;
+    //     cc->Decrypt(m1.getKeys().secretKey, temp3, &result3);
+    //     std::cout << "Plaintext matrix multiplied with cipher vector: " << std::endl;
+    //     std::cout << result3 << std::endl;
+    //     std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+    // } catch (char const* err) {
+    //     std::cout << err << std::endl;
+    // }
+
+    //Packed matrix and packed vector verson:
+
     //Cipher matrix, plaintext vector
+    std::cout << "Packed Matrix and vector methods: " << std::endl;
     try {
-        auto temp = matrixVectorProduct(cipherM, PTvect, cc, 4, m1.getKeys());
+        auto temp = packedMatrixVectorProduct(CTMatrix, PTVector, cc, m1.getKeys());
         Plaintext result;
         cc->Decrypt(m1.getKeys().secretKey, temp, &result);
         std::cout << "Cipher matrix multiplied with plaintext vector: " << std::endl;
@@ -567,7 +713,7 @@ int main() {
 
     //Cipher matrix, cipher vector
     try {
-        auto temp2 = matrixVectorProduct(cipherM, CTvect, cc, 4, m1.getKeys());
+        auto temp2 = packedMatrixVectorProduct(CTMatrix, CTVector, cc, m1.getKeys());
         Plaintext result2;
         cc->Decrypt(m1.getKeys().secretKey, temp2, &result2);
         std::cout << "Cipher matrix multiplied with cipher vector: " << std::endl;
@@ -580,7 +726,7 @@ int main() {
 
     //Plaintext matrix, cipher vector
     try {
-        auto temp3 = matrixVectorProduct(PTMatrix, CTvect, cc, 4, m1.getKeys());
+        auto temp3 = packedMatrixVectorProduct(PTMatrix, CTVector, cc, m1.getKeys());
         Plaintext result3;
         cc->Decrypt(m1.getKeys().secretKey, temp3, &result3);
         std::cout << "Plaintext matrix multiplied with cipher vector: " << std::endl;
@@ -589,6 +735,7 @@ int main() {
     } catch (char const* err) {
         std::cout << err << std::endl;
     }
+
 
     //Check results of encoding and encryption
     // m1.diagonalEncodeAndEncrypt();
@@ -601,8 +748,5 @@ int main() {
 
 
 //TODO: 
-//1. change to have a packed vectors form where vector of ctexts/ptexts for matrix
-//2. make a function that just immediately converts from vector to ciphertext
-//3. can try use typedef to change std::complex<double> to like D or smthing (more readable)
-//4. internal matrix can keep as is (maybe abstract out into header file)
-//5. ciphertensor is the interface for ppl working on the code so keep that in mind
+//1. change the structure so a single ciphertext vector can be represented as a cipherTensor as well, 
+//with just a size 1 vector of ciphertexts. Update everything to follow this convention
