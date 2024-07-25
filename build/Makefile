@@ -111,17 +111,30 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named cMatrix
+# Target rules for targets named cipherTensor
 
 # Build rule for target.
-cMatrix: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 cMatrix
-.PHONY : cMatrix
+cipherTensor: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 cipherTensor
+.PHONY : cipherTensor
 
 # fast build rule for target.
-cMatrix/fast:
-	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/build
-.PHONY : cMatrix/fast
+cipherTensor/fast:
+	$(MAKE) -f CMakeFiles/cipherTensor.dir/build.make CMakeFiles/cipherTensor.dir/build
+.PHONY : cipherTensor/fast
+
+#=============================================================================
+# Target rules for targets named internalTensor
+
+# Build rule for target.
+internalTensor: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 internalTensor
+.PHONY : internalTensor
+
+# fast build rule for target.
+internalTensor/fast:
+	$(MAKE) -f CMakeFiles/internalTensor.dir/build.make CMakeFiles/internalTensor.dir/build
+.PHONY : internalTensor/fast
 
 #=============================================================================
 # Target rules for targets named poly-eval
@@ -162,33 +175,6 @@ prefix-sum/fast:
 	$(MAKE) -f CMakeFiles/prefix-sum.dir/build.make CMakeFiles/prefix-sum.dir/build
 .PHONY : prefix-sum/fast
 
-cMatrix.o: cMatrix.cpp.o
-
-.PHONY : cMatrix.o
-
-# target to build an object file
-cMatrix.cpp.o:
-	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/cMatrix.cpp.o
-.PHONY : cMatrix.cpp.o
-
-cMatrix.i: cMatrix.cpp.i
-
-.PHONY : cMatrix.i
-
-# target to preprocess a source file
-cMatrix.cpp.i:
-	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/cMatrix.cpp.i
-.PHONY : cMatrix.cpp.i
-
-cMatrix.s: cMatrix.cpp.s
-
-.PHONY : cMatrix.s
-
-# target to generate assembly for a file
-cMatrix.cpp.s:
-	$(MAKE) -f CMakeFiles/cMatrix.dir/build.make CMakeFiles/cMatrix.dir/cMatrix.cpp.s
-.PHONY : cMatrix.cpp.s
-
 chebyshev2.o: chebyshev2.cpp.o
 
 .PHONY : chebyshev2.o
@@ -215,6 +201,60 @@ chebyshev2.s: chebyshev2.cpp.s
 chebyshev2.cpp.s:
 	$(MAKE) -f CMakeFiles/chebyshev.dir/build.make CMakeFiles/chebyshev.dir/chebyshev2.cpp.s
 .PHONY : chebyshev2.cpp.s
+
+cipherTensor.o: cipherTensor.cpp.o
+
+.PHONY : cipherTensor.o
+
+# target to build an object file
+cipherTensor.cpp.o:
+	$(MAKE) -f CMakeFiles/cipherTensor.dir/build.make CMakeFiles/cipherTensor.dir/cipherTensor.cpp.o
+.PHONY : cipherTensor.cpp.o
+
+cipherTensor.i: cipherTensor.cpp.i
+
+.PHONY : cipherTensor.i
+
+# target to preprocess a source file
+cipherTensor.cpp.i:
+	$(MAKE) -f CMakeFiles/cipherTensor.dir/build.make CMakeFiles/cipherTensor.dir/cipherTensor.cpp.i
+.PHONY : cipherTensor.cpp.i
+
+cipherTensor.s: cipherTensor.cpp.s
+
+.PHONY : cipherTensor.s
+
+# target to generate assembly for a file
+cipherTensor.cpp.s:
+	$(MAKE) -f CMakeFiles/cipherTensor.dir/build.make CMakeFiles/cipherTensor.dir/cipherTensor.cpp.s
+.PHONY : cipherTensor.cpp.s
+
+internalTensor.o: internalTensor.cpp.o
+
+.PHONY : internalTensor.o
+
+# target to build an object file
+internalTensor.cpp.o:
+	$(MAKE) -f CMakeFiles/internalTensor.dir/build.make CMakeFiles/internalTensor.dir/internalTensor.cpp.o
+.PHONY : internalTensor.cpp.o
+
+internalTensor.i: internalTensor.cpp.i
+
+.PHONY : internalTensor.i
+
+# target to preprocess a source file
+internalTensor.cpp.i:
+	$(MAKE) -f CMakeFiles/internalTensor.dir/build.make CMakeFiles/internalTensor.dir/internalTensor.cpp.i
+.PHONY : internalTensor.cpp.i
+
+internalTensor.s: internalTensor.cpp.s
+
+.PHONY : internalTensor.s
+
+# target to generate assembly for a file
+internalTensor.cpp.s:
+	$(MAKE) -f CMakeFiles/internalTensor.dir/build.make CMakeFiles/internalTensor.dir/internalTensor.cpp.s
+.PHONY : internalTensor.cpp.s
 
 poly-eval.o: poly-eval.cpp.o
 
@@ -277,17 +317,21 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
+	@echo "... cipherTensor"
 	@echo "... edit_cache"
-	@echo "... cMatrix"
+	@echo "... internalTensor"
 	@echo "... poly-eval"
 	@echo "... chebyshev"
 	@echo "... prefix-sum"
-	@echo "... cMatrix.o"
-	@echo "... cMatrix.i"
-	@echo "... cMatrix.s"
 	@echo "... chebyshev2.o"
 	@echo "... chebyshev2.i"
 	@echo "... chebyshev2.s"
+	@echo "... cipherTensor.o"
+	@echo "... cipherTensor.i"
+	@echo "... cipherTensor.s"
+	@echo "... internalTensor.o"
+	@echo "... internalTensor.i"
+	@echo "... internalTensor.s"
 	@echo "... poly-eval.o"
 	@echo "... poly-eval.i"
 	@echo "... poly-eval.s"

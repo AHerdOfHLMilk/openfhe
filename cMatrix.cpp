@@ -902,3 +902,278 @@ int main() {
 
 
 //TODO: cipherTensor shld only have the cryptocontext, no keys (cept for debugging)
+
+// //Assume cipher matrix is in concatenated diagonal packing form, matrix cipher length = l^2, vector length = l
+// ctxt packedMatrixVectorProduct(std::vector<ctxt> diagPackMatrix, std::vector<vct> vect, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys) {
+//     unsigned int dimension = vect.size();
+//     // printV(diagPackMatrix, cryptoContext, keys);
+//     ctxt sum = cryptoContext->EvalMult(diagPackMatrix[0], vectEncode(vect[0], cryptoContext));
+//     // Plaintext result2;
+//     // cryptoContext->Decrypt(keys.secretKey, diagPackMatrix[0], &result2);
+//     // std::cout << "diagpackmatrix: " << result2 << std::endl;
+//     // Plaintext result1;
+//     // cryptoContext->Decrypt(keys.secretKey, sum, &result1);
+//     // std::cout << "sum: " << result1 << std::endl;
+//     for (int rotation = 1; rotation < dimension; rotation++) {
+//         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(diagPackMatrix[rotation], vectEncode(vect[rotation], cryptoContext)));
+//     }
+//     return sum;
+// }
+
+
+// //ctext matrix with ctext vect
+// ctxt packedMatrixVectorProduct(std::vector<ctxt> diagPackMatrix, std::vector<ctxt> vect, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys) {
+//     unsigned int dimension = vect.size();
+//     ctxt sum = cryptoContext->EvalMult(diagPackMatrix[0], vect[0]);
+//     // Plaintext result1;
+//     // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+//     // std::cout << "original matrix: " << result1 << std::endl;
+//     for (int rotation = 1; rotation < dimension; rotation++) {
+//         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(diagPackMatrix[rotation], vect[rotation]));
+//     }
+//     return sum;
+// }
+
+// //ctext matrix with ctext vect
+// ctxt packedParallelMatrixVectorProduct(std::vector<ctxt> diagPackMatrix, std::vector<ctxt> vect, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys) {
+//     unsigned int dimension = vect.size();
+//     ctxt sum = cryptoContext->EvalMult(diagPackMatrix[0], vect[0]);
+//     // Plaintext result1;
+//     // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+//     // std::cout << "original matrix: " << result1 << std::endl;
+//     #pragma omp parallel for
+//     for (int rotation = 1; rotation < dimension; rotation++) {
+
+//         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(diagPackMatrix[rotation], vect[rotation]));
+//     }
+//     return sum;
+
+   
+
+//     //Prints out the decrypted diagonal and row ciphertexts, as well as the original matrix
+//     void summary() {
+//         std::string seperator = "-------------------------------------------------------------------------------------------------------------";
+//         std::cout << "Summary:" << std::endl << seperator << std::endl;
+//         if (decrypted) {
+//             for (int pos = 0; pos < matrixList.size(); pos++) {
+//                 std::cout << "Matrix " << pos << ": " << std::endl;
+//                 this->matrixList[pos].printMatrix();
+//             }
+            
+//         }
+//         if (diagEncrypted) {
+//             std::cout << "Diagonal packing encrypted matrix:" << std::endl;
+//             Plaintext vectorResult;
+//             for (auto cipher : diagVectorCiphers) {
+//                 cryptoContext->Decrypt(keys.secretKey, cipher, &vectorResult);
+//                 std::cout << vectorResult << std::endl;
+//             }
+//         }
+//         if (rowEncrypted) {
+//             std::cout << "Row packing encrypted matrix:" << std::endl;
+//             Plaintext result;
+//             cryptoContext->Decrypt(keys.secretKey, rowVectorCipher, &result);
+//             std::cout << result << std::endl;
+//         }
+//     }
+
+// };
+
+// //Non-class functions:
+// //1. getFilledVector(): pack plaintext full with the vector
+// //2. generateTransformMatrix: For generating the transform matrices inn matrix-matrix multiplication
+// //3. concatMatrixVectorProduct: Function to do matrix-vector mulltiplicaton (where matrix is square matrix)
+
+// enum transformMatrixTypes {
+//     sigma,
+//     tau,
+//     rowShift,
+//     colShift
+// };
+
+// //Algo for generating sigma transform matrix
+// vct generateSigmaMatrix(int diagonalNum, unsigned int dimension) {
+//     unsigned int size = dimension * dimension;
+//     vct transformMatrix = vct(size);
+//     if (diagonalNum >= 0) {
+//         for (int pos = 0; pos < size; pos++) {
+//             int checkFormula = pos - dimension * diagonalNum;
+//             if (checkFormula >= 0 && checkFormula < (dimension - diagonalNum)) {
+//                 transformMatrix[pos] = 1;
+//             } else {
+//                 transformMatrix[pos] = 0;
+//             }
+//         }
+//     } else {
+//         for (int pos = 0; pos < size; pos++) {
+//             int checkFormula = pos - (dimension + diagonalNum) * dimension;
+//             if (checkFormula >= -diagonalNum && checkFormula < dimension) {
+//                 transformMatrix[pos] = 1;
+//             } else {
+//                 transformMatrix[pos] = 0;
+//             }
+//         }
+//     }
+//     return transformMatrix;
+// }
+
+// //Algo for generating sigma transform matrix
+// vct generateTauMatrix(int diagonalNum, unsigned int dimension) {
+//     unsigned int size = dimension * dimension;
+//     vct transformMatrix = vct(size);
+//     // if (diagonalNum >= 0) {
+//     //     for (int pos = 0; pos < size; pos++) {
+//     //         int checkFormula = pos - dimension * diagonalNum;
+//     //         if (checkFormula >= 0 && checkFormula < (dimension - diagonalNum)) {
+//     //             transformMatrix[pos] = 1;
+//     //         } else {
+//     //             transformMatrix[pos] = 0;
+//     //         }
+//     //     }
+//     // } else {
+//     //     for (int pos = 0; pos < size; pos++) {
+//     //         int checkFormula = pos - (dimension + diagonalNum) * dimension;
+//     //         if (checkFormula >= -diagonalNum && checkFormula < dimension) {
+//     //             transformMatrix[pos] = 1;
+//     //         } else {
+//     //             transformMatrix[pos] = 0;
+//     //         }
+//     //     }
+//     // }
+//     return transformMatrix;
+// }
+
+// //Algo for generating sigma transform matrix
+// vct generateRowShiftMatrix(int diagonalNum, unsigned int dimension) {
+//     unsigned int size = dimension * dimension;
+//     vct transformMatrix = vct(size);
+//     // if (diagonalNum >= 0) {
+//     //     for (int pos = 0; pos < size; pos++) {
+//     //         int checkFormula = pos - dimension * diagonalNum;
+//     //         if (checkFormula >= 0 && checkFormula < (dimension - diagonalNum)) {
+//     //             transformMatrix[pos] = 1;
+//     //         } else {
+//     //             transformMatrix[pos] = 0;
+//     //         }
+//     //     }
+//     // } else {
+//     //     for (int pos = 0; pos < size; pos++) {
+//     //         int checkFormula = pos - (dimension + diagonalNum) * dimension;
+//     //         if (checkFormula >= -diagonalNum && checkFormula < dimension) {
+//     //             transformMatrix[pos] = 1;
+//     //         } else {
+//     //             transformMatrix[pos] = 0;
+//     //         }
+//     //     }
+//     // }
+//     return transformMatrix;
+// }
+
+// //Algo for generating sigma transform matrix
+// vct generateColShiftMatrix(int diagonalNum, unsigned int dimension) {
+//     unsigned int size = dimension * dimension;
+//     vct transformMatrix = vct(size);
+//     for (int pos = 0; pos < size; pos++) {
+//         if (pos%dimension >= 0 && pos%dimension < (dimension - diagonalNum)) {
+//             transformMatrix[pos] = 1;
+//         } else if (pos%dimension < dimension && pos%dimension > (dimension - diagonalNum)) {
+//             transformMatrix[pos] = 1;
+//         } else {
+//             transformMatrix[pos] = 0;
+//         }
+//     }
+//     return transformMatrix;
+// }
+
+// //dimension is the length of a row/col in the square matrix
+// vct generateTransformMatrix(transformMatrixTypes type, int diagonalNum, unsigned int dimension) {
+//     unsigned int size = dimension * dimension;
+//     vct transformMatrix = vct(size);
+//     switch(type) {
+//         case sigma:
+//             return generateSigmaMatrix(diagonalNum, dimension);
+//             break;
+//         case tau:
+//             break;
+//         case rowShift:
+//             break;
+//         case colShift:
+//             break;
+//     }
+//     return {};
+// }
+
+
+
+// //Assume cipher matrix is in concatenated diagonal packing form, matrix cipher length = l^2, vector length = l
+// ctxt concatMatrixVectorProduct(ctxt concatDiagPackMatrix, Plaintext vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+//     vct originalVect = vect->GetCKKSPackedValue();
+//     auto filledVect = getFilledVector(originalVect, dimension, cryptoContext);
+//     Plaintext packedVect = cryptoContext->MakeCKKSPackedPlaintext(filledVect);
+//     ctxt sum = cryptoContext->EvalMult(concatDiagPackMatrix, packedVect);
+//     // Plaintext result1;
+//     // cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+//     // std::cout << "original matrix: " << result1 << std::endl;
+//     ctxt rotatedConcatDiagPackMatrix = concatDiagPackMatrix;
+//     for (int rotation = 1; rotation < dimension; rotation++) {
+//         rotatedConcatDiagPackMatrix = cryptoContext->EvalRotate(rotatedConcatDiagPackMatrix, dimension);
+//         // Plaintext result;
+//         // cryptoContext->Decrypt(keys.secretKey, rotatedConcatDiagPackMatrix, &result);
+//         // std::cout << "rotated matrix: " << result << std::endl;
+//         std::rotate(filledVect.begin(), filledVect.begin()+1, filledVect.end());
+//         Plaintext rotatedPackedVector = cryptoContext->MakeCKKSPackedPlaintext(filledVect);
+//         // std::cout << rotatedPackedVector << std::endl;
+//         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(rotatedConcatDiagPackMatrix, rotatedPackedVector));
+//     }
+//     return sum;
+// }
+
+
+// //ctext matrix with ctext vect
+// ctxt concatMatrixVectorProduct(ctxt concatDiagPackMatrix, ctxt vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+//     auto filledVect = getFilledVector(vect, dimension, cryptoContext);
+//     ctxt sum = cryptoContext->EvalMult(concatDiagPackMatrix, filledVect);
+//     ctxt rotatedConcatDiagPackMatrix = concatDiagPackMatrix;
+//     auto rotatedFilledVector = filledVect;
+//     Plaintext result4;
+//     cryptoContext->Decrypt(keys.secretKey, filledVect, &result4);
+//     std::cout << "original filled vector: " << result4 << std::endl;
+//     Plaintext result1;
+//     cryptoContext->Decrypt(keys.secretKey, concatDiagPackMatrix, &result1);
+//     std::cout << "original matrix: " << result1 << std::endl;
+//     for (int rotation = 1; rotation < dimension; rotation++) {
+//         rotatedConcatDiagPackMatrix = cryptoContext->EvalRotate(rotatedConcatDiagPackMatrix, dimension);
+//         Plaintext result;
+//         cryptoContext->Decrypt(keys.secretKey, rotatedConcatDiagPackMatrix, &result);
+//         std::cout << "rotated matrix: " << result << std::endl;
+//         rotatedFilledVector = cryptoContext->EvalRotate(rotatedFilledVector, 1);
+//         Plaintext result2;
+//         cryptoContext->Decrypt(keys.secretKey, rotatedFilledVector, &result2);
+//         std::cout << "rotated vector: " << result2 << std::endl;
+//         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(rotatedConcatDiagPackMatrix, rotatedFilledVector));
+//     }
+//     return sum;
+// }
+
+// //ptext matrix with ctext vect, assume ptext matrix is in diagonal packing form already, else use rotateConcatDiagEncode() for rotation of ptext matrix instead
+// ctxt concatMatrixVectorProduct(Plaintext PTMatrix, ctxt vect, CryptoContext<DCRTPoly> cryptoContext, unsigned int dimension, KeyPair<DCRTPoly> keys) {
+//     //Check if is square matrix
+//     if (!(ceil((double)sqrt(PTMatrix->GetLength())) == floor((double)sqrt(PTMatrix->GetLength())))) {
+//         throw "Not a square matrix";
+//     }
+//     auto filledVect = getFilledVector(vect, dimension, cryptoContext); 
+//     ctxt sum = cryptoContext->EvalMult(PTMatrix, filledVect);
+//     // std::cout << "original matrix: " << PTMatrix << std::endl;
+//     cipherTensor cMatrix = cipherTensor(PTMatrix, cryptoContext, keys);
+//     Plaintext rotatedConcatDiagPackMatrix = PTMatrix;
+//     for (int rotation = 1; rotation < dimension; rotation++) {
+//         rotatedConcatDiagPackMatrix = cMatrix.rotateEncode(rotation*dimension);
+//         // std::cout << "rotated matrix: " << rotatedConcatDiagPackMatrix << std::endl;
+//         auto rotatedFilledVector = cryptoContext->EvalRotate(filledVect, rotation);
+//         // Plaintext result2;
+//         // cryptoContext->Decrypt(keys.secretKey, rotatedFilledVector, &result2);
+//         // std::cout << "rotated vector: " << result2 << std::endl;
+//         sum = cryptoContext->EvalAdd(sum, cryptoContext->EvalMult(rotatedConcatDiagPackMatrix, rotatedFilledVector));
+//     }
+//     return sum;
+// }

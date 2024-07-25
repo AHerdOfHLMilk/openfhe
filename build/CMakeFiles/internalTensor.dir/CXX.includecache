@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/d/Work/astar/openfhetest/internalTensor.cpp
+internalTensor.h
+/mnt/d/Work/astar/openfhetest/internalTensor.h
+
+/mnt/d/Work/astar/openfhetest/internalTensor.h
+vector
+-
+complex
+-
+iostream
+-
+algorithm
+-
+
