@@ -14,7 +14,7 @@ internalTensor::internalTensor(unsigned int length) {
 }
 
 //initialise square matrix from existing square matrix in split form
-internalTensor::internalTensor(mtx m, bool isDiag) {
+internalTensor::internalTensor(mtx m, bool isVects) {
     this->matrix = {};
     this->rowsize = m.size();
     for (auto v : m) {
@@ -26,9 +26,9 @@ internalTensor::internalTensor(mtx m, bool isDiag) {
         auto temp = vct(v);
         matrix.push_back(temp);
     }
-    if (isDiag) {
+    if (!isVects) {
+        this->rowConcat = getRowConcatenationVector();
         this->matrix = getDiagonalVectors();
-        this->isDiag = true;
     }
 }
 
@@ -45,12 +45,12 @@ internalTensor internalTensor::initInternalVector(vct v) {
     return internalTensor(v);
 }
 
-internalTensor internalTensor::initInternalMatrixInRowForm(mtx m) {
-    return internalTensor(m, false);
+internalTensor internalTensor::initInternalPackedVectors(mtx v) {
+    return internalTensor(v, true);
 }
 
-internalTensor internalTensor::initInternalMatrixInDiagForm(mtx m) {
-    return internalTensor(m, true);
+internalTensor internalTensor::initInternalMatrix(mtx m) {
+    return internalTensor(m, false);
 }
 
 //Getter/Setter methods
@@ -97,9 +97,6 @@ mtx internalTensor::getPackedVector() {
 
 //Obtain diagonal packing format
 mtx internalTensor::getDiagonalVectors() {
-    if (isDiag) {
-        return getMatrix();
-    }
     mtx diagPackVector = {};
     for (int row = 0; row < getRowSize(); row++) {
         vct temp = {};
@@ -111,29 +108,8 @@ mtx internalTensor::getDiagonalVectors() {
     return diagPackVector;
 }
 
-//Obtain diagonal concatenation packing format
-vct internalTensor::getDiagonalConcatenationVector() {
-    vct diagPackVector = {};
-    if (isDiag) {
-        diagPackVector = this->matrix[0];
-        for (int row = 1; row < this->matrix.size(); row++) {
-            diagPackVector.insert(diagPackVector.end(), this->matrix[row].begin(), this->matrix[row].end());
-        }
-    } else {
-        for (int row = 0; row < getRowSize(); row++) {
-            for (int col = 0; col < getColSize(); col++) {
-                diagPackVector.push_back(getElem(col, (col + row) % getColSize()));
-            }
-        }
-    }
-    return diagPackVector;
-}
-
 //Obtain row packing format
 vct internalTensor::getRowConcatenationVector() {
-    if (isDiag) {
-        throw "InternalTensor is in diagonal form, row form not available";
-    }
     vct rowPackVector = {};
     for (int row = 0; row < getRowSize(); row++) {
         for (int col = 0; col < getColSize(); col++) {
@@ -152,10 +128,4 @@ void internalTensor::printMatrix() {
         }
         std::cout << ")" << std::endl;
     }
-}
-
-int main() {
-    // internalTensor h = internalTensor::initInternalMatrixInDiagForm({{1,2,3,4}, {5,6,7,8}, {9,10,11,12}, {13,14,15,16}});
-    // std::cout<< h.getColSize() << std::endl;
-    return -1;
 }

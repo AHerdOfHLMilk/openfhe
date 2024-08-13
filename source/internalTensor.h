@@ -10,14 +10,16 @@ typedef std::complex<double> dbl;
 typedef std::vector<dbl> vct;
 typedef std::vector<std::vector<dbl>> mtx;
 
+//TODO: add a get type (diag or not, or vector)
+
 class internalTensor {
     public:
     mtx matrix;
+    vct rowConcat;
     unsigned int rowsize;
     unsigned int colsize;
 
     bool isVect = false;
-    bool isDiag = false;
 
     internalTensor();
 
@@ -32,9 +34,9 @@ class internalTensor {
 
     static internalTensor initInternalVector(vct v);
 
-    static internalTensor initInternalMatrixInRowForm(mtx m);
+    static internalTensor initInternalPackedVectors(mtx m); 
 
-    static internalTensor initInternalMatrixInDiagForm(mtx m);
+    static internalTensor initInternalMatrix(mtx m);
 
     //Getter/Setter methods
     bool isVector();

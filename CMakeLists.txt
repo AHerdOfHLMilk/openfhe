@@ -29,6 +29,5 @@ set_target_properties(OPENFHE_BIN PROPERTIES IMPORTED_LOCATION ${OPENFHE_LIBDIR_
 
 add_subdirectory(source)
 
-# enable_testing()
-# add_subdirectory(tests)
+enable_testing()
 add_subdirectory(run)

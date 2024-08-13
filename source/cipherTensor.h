@@ -15,8 +15,8 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
     private:
     unsigned int dimensionSize;
     std::vector<ctxt> cipher = {}; //in diagonal packing form
+    ctxt rowConcat;
     CryptoContext<DCRTPoly> cryptoContext;
-    KeyPair<DCRTPoly> keys;
     bool isVect = false;
 
     public:
