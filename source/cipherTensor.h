@@ -15,9 +15,9 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
     private:
     unsigned int dimensionSize;
     std::vector<ctxt> cipher = {}; //in diagonal packing form
-    ctxt rowConcat;
     CryptoContext<DCRTPoly> cryptoContext;
     bool isVect = false;
+    bool isE2DM = false; //TODO: add this flag in properly
 
     public:
     //constructing from a ctxt
@@ -30,6 +30,8 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
 
     std::vector<ctxt> getCipher();
 
+    ctxt getRowConcat();
+
     ctxt encodeAndEncrypt(vct vect, KeyPair<DCRTPoly> keypair);
 
     static cipherTensor encMtxVectMult(cipherTensor matrix, cipherTensor vect, CryptoContext<DCRTPoly> cryptoContext);
@@ -38,7 +40,17 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
 
     static cipherTensor plainMtxEncVectMult(internalTensor matrix, cipherTensor vect, CryptoContext<DCRTPoly> cryptoContext);
 
+    static ctxt sigmaTransform(cipherTensor matrix, int dimension, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys);
+
+    static ctxt tauTransform(cipherTensor matrix, unsigned int dimension, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys);
+
+    static std::vector<ctxt> phiTransform(ctxt sigmaResult, unsigned int dimension, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys);
+
+    static std::vector<ctxt> psiTransform(ctxt tauResult, unsigned int dimension, CryptoContext<DCRTPoly> cryptoContext, KeyPair<DCRTPoly> keys);
+
     void decryptAndPrint(KeyPair<DCRTPoly> keypair);
+
+    static cipherTensor matrixMult(cipherTensor matrix1, cipherTensor matrix2, unsigned int dimension, CryptoContext<DCRTPoly> cryptoContex, KeyPair<DCRTPoly> keys);
 
 
 };

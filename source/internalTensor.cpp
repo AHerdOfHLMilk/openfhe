@@ -14,7 +14,7 @@ internalTensor::internalTensor(unsigned int length) {
 }
 
 //initialise square matrix from existing square matrix in split form
-internalTensor::internalTensor(mtx m, bool isVects) {
+internalTensor::internalTensor(mtx m, bool isVects, bool isRowConcat) {
     this->matrix = {};
     this->rowsize = m.size();
     for (auto v : m) {
@@ -24,11 +24,19 @@ internalTensor::internalTensor(mtx m, bool isVects) {
             throw "Not a square matrix";
         }
         auto temp = vct(v);
-        matrix.push_back(temp);
+        this->matrix.push_back(temp);
+    }
+    if (isRowConcat) {
+        mtx temp = {};
+        temp.push_back(getRowConcatenationVector());
+        this->matrix = temp;
+        this->isE2DM = true;
     }
     if (!isVects) {
-        this->rowConcat = getRowConcatenationVector();
         this->matrix = getDiagonalVectors();
+    }
+    if (!isRowConcat && isVects) {
+        this->isVect = isVects;
     }
 }
 
@@ -46,11 +54,15 @@ internalTensor internalTensor::initInternalVector(vct v) {
 }
 
 internalTensor internalTensor::initInternalPackedVectors(mtx v) {
-    return internalTensor(v, true);
+    return internalTensor(v, true, false);
 }
 
 internalTensor internalTensor::initInternalMatrix(mtx m) {
-    return internalTensor(m, false);
+    return internalTensor(m, false, false);
+}
+
+internalTensor internalTensor::initInternalMatrixForMxM(mtx m) {
+    return internalTensor(m, true, true);
 }
 
 //Getter/Setter methods

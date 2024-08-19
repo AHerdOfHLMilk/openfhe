@@ -15,11 +15,11 @@ typedef std::vector<std::vector<dbl>> mtx;
 class internalTensor {
     public:
     mtx matrix;
-    vct rowConcat;
     unsigned int rowsize;
     unsigned int colsize;
 
     bool isVect = false;
+    bool isE2DM = false;
 
     internalTensor();
 
@@ -27,7 +27,7 @@ class internalTensor {
     internalTensor(unsigned int length);
 
     //initialise square matrix from existing square matrix in split form
-    internalTensor(mtx m, bool isDiag);
+    internalTensor(mtx m, bool isDiag, bool isRowConcat);
 
     //initialise vector internalTensor
     internalTensor(vct v);
@@ -37,6 +37,8 @@ class internalTensor {
     static internalTensor initInternalPackedVectors(mtx m); 
 
     static internalTensor initInternalMatrix(mtx m);
+
+    static internalTensor initInternalMatrixForMxM(mtx m);
 
     //Getter/Setter methods
     bool isVector();

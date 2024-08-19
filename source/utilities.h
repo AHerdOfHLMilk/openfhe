@@ -12,6 +12,8 @@ vct repeatVector(vct vect, unsigned int num);
 
 std::vector<vct> getPackedVector(vct vect, unsigned int numOfMatrices);
 
+std::vector<int> geneerateRotateIndexList(int low, int high);
+
 void printV(std::vector<dbl> v);
 
 void printV(std::vector<int> v);

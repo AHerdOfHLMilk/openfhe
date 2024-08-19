@@ -5,6 +5,8 @@
 
  using namespace lbcrypto;
 
+ 
+
 std::vector<vct> concatenateMatrices(std::vector<std::vector<vct>> matrices) {
     std::vector<vct> concatMatrix = matrices[0];
     for (int matrixPos = 1; matrixPos < matrices.size(); matrixPos++) {
@@ -82,4 +84,12 @@ std::vector<vct> getPackedVector(vct vect, unsigned int numOfMatrices) {
         packedVector.push_back(insertVector);
     }
     return packedVector;
+}
+
+std::vector<int> geneerateRotateIndexList(int low, int high) {
+    std::vector<int> indexList = {};
+    for (int index = low; index <= high; index++) {
+        indexList.insert(indexList.end(), index);
+    }
+    return indexList;
 }
