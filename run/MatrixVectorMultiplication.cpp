@@ -5,14 +5,33 @@
 
  using namespace lbcrypto;
 
+vct mulMat(mtx mat1, mtx mat2, unsigned int dim) {
+    vct row = std::vector<dbl>(dim, 0);
+    mtx rslt = std::vector<std::vector<dbl>>(dim, row);
+    for (int i = 0; i < dim; i++) {
+        for (int j = 0; j < dim; j++) {
+            for (int k = 0; k < dim; k++) {
+                rslt[i][j] += mat1[i][k] * mat2[k][j];
+            }
+        }
+    }
+    vct returnVect = std::vector<dbl>(dim*dim);
+    for (int i = 0; i < dim; i++) {
+        for (int j = 0; j < dim; j++) {
+            returnVect[i * dim + j] = rslt[i][j];
+        }
+    }
+    return returnVect;
+}
+
 int main() {
 
-
+    unsigned int dim = 4; //size of width/length of matrix (update manually for testing)
 
     //Setting cryptoContext parameters
     CCParams<CryptoContextCKKSRNS> parameters;
     parameters.SetSecurityLevel(HEStd_NotSet);
-    parameters.SetRingDim(32); // n =  m/2 must set slot size to be equal to matrix size
+    parameters.SetRingDim(dim*dim*2); // n =  m/2 must set slot size to be equal to matrix size
     parameters.SetMultiplicativeDepth(20);
     parameters.SetScalingModSize(50);
     CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
@@ -22,7 +41,7 @@ int main() {
     cc->Enable(ADVANCEDSHE);
     KeyPair<DCRTPoly> keypair = cc->KeyGen();
     cc->EvalMultKeyGen(keypair.secretKey);
-    cc->EvalRotateKeyGen(keypair.secretKey, generateRotateIndexList(-16,16));
+    cc->EvalRotateKeyGen(keypair.secretKey, generateRotateIndexList(-dim*dim,dim*dim));
 
 
     //Setting matrix and vector values
@@ -97,7 +116,7 @@ int main() {
 
     try {
         
-        auto temp4 = cipherTensor::matrixMult(ctxtMatrix, ctxtMatrix2, 4, cc, keypair);
+        auto temp4 = cipherTensor::matrixMult(ctxtMatrix, ctxtMatrix2, dim, cc, keypair);
         auto resultCtxt4 = temp4.getCipher()[0];
 
         Plaintext result4;
@@ -105,6 +124,13 @@ int main() {
         std::cout << "Cipher matrix multiplied with cipher matrix: " << std::endl;
         std::cout << result4 << std::endl;
         std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+
+        std::cout << "Expected result:" << std::endl;
+        vct result = mulMat(matrix, matrix2, dim);
+        for (auto elem : result){
+            std::cout << elem << ", ";
+        } 
+        std::cout << std::endl;
     } catch (char const* err) {
         std::cout << err << std::endl;
     }
