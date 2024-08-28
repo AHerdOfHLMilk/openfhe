@@ -1,10 +1,14 @@
- #include "cipherTensor.h"
- #include "internalTensor.h"
- #include "utilities.h"
+
+ #include "../source/cipherTensor.h"
+ #include "../source/internalTensor.h"
+ #include "../source/utilities.h"
 
  using namespace lbcrypto;
 
 int main() {
+
+
+
     //Setting cryptoContext parameters
     CCParams<CryptoContextCKKSRNS> parameters;
     parameters.SetSecurityLevel(HEStd_NotSet);
@@ -18,7 +22,7 @@ int main() {
     cc->Enable(ADVANCEDSHE);
     KeyPair<DCRTPoly> keypair = cc->KeyGen();
     cc->EvalMultKeyGen(keypair.secretKey);
-    cc->EvalRotateKeyGen(keypair.secretKey, geneerateRotateIndexList(-16,16));
+    cc->EvalRotateKeyGen(keypair.secretKey, generateRotateIndexList(-16,16));
 
 
     //Setting matrix and vector values

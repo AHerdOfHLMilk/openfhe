@@ -86,7 +86,7 @@ std::vector<vct> getPackedVector(vct vect, unsigned int numOfMatrices) {
     return packedVector;
 }
 
-std::vector<int> geneerateRotateIndexList(int low, int high) {
+std::vector<int> generateRotateIndexList(int low, int high) {
     std::vector<int> indexList = {};
     for (int index = low; index <= high; index++) {
         indexList.insert(indexList.end(), index);
