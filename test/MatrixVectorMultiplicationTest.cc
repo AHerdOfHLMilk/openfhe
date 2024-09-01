@@ -14,9 +14,9 @@ class MatrixVectorMultiplicationTest : public testing::Test {
   // You can remove any or all of the following functions if their bodies would
   // be empty.
 
-  vct mulMat(mtx mat1, mtx mat2, unsigned int dim) {
-    vct row = std::vector<dbl>(dim, 0);
-    mtx rslt = std::vector<std::vector<dbl>>(dim, row);
+  std::vector<double> mulMat(std::vector<std::vector<double>> mat1, std::vector<std::vector<double>> mat2, unsigned int dim) {
+    std::vector<double> row = std::vector<double>(dim, 0);
+    std::vector<std::vector<double>> rslt = std::vector<std::vector<double>>(dim, row);
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
             for (int k = 0; k < dim; k++) {
@@ -24,7 +24,7 @@ class MatrixVectorMultiplicationTest : public testing::Test {
             }
         }
     }
-    vct returnVect = std::vector<dbl>(dim*dim);
+    std::vector<double> returnVect = std::vector<double>(dim*dim);
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
             returnVect[i * dim + j] = rslt[i][j];
@@ -44,14 +44,14 @@ class MatrixVectorMultiplicationTest : public testing::Test {
     parameters.SetRingDim(size*2); // n =  m/2 must set slot size to be equal to matrix size
     parameters.SetMultiplicativeDepth(20);
     parameters.SetScalingModSize(50);
-    cc = GenCryptoContext(parameters);
-    cc->Enable(PKE);
-    cc->Enable(KEYSWITCH);
-    cc->Enable(LEVELEDSHE);
-    cc->Enable(ADVANCEDSHE);
-    keypair = cc->KeyGen();
-    cc->EvalMultKeyGen(keypair.secretKey);
-    cc->EvalRotateKeyGen(keypair.secretKey, generateRotateIndexList(-size, size));
+    cc1 = GenCryptoContext(parameters);
+    cc1->Enable(PKE);
+    cc1->Enable(KEYSWITCH);
+    cc1->Enable(LEVELEDSHE);
+    cc1->Enable(ADVANCEDSHE);
+    keypairs = cc1->KeyGen();
+    cc1->EvalMultKeyGen(keypairs.secretKey);
+    cc1->EvalRotateKeyGen(keypairs.secretKey, generateRotateIndexList(-size, size));
 
 
     //Setting matrix and vector values
@@ -60,12 +60,20 @@ class MatrixVectorMultiplicationTest : public testing::Test {
     for (int i = 0; i < dim; i++) {
         vct temp = {};
         vct temp2 = {};
+        std::vector<double> temp3 = {};
+        std::vector<double> temp4 = {};
         for (int j = 0; j < dim; j++) {
-            temp.push_back(std::rand()%100);
-            temp2.push_back(std::rand()%100);
+          auto randomVal1 = std::rand()%100;
+          auto randomVal2 = std::rand()%100;
+          temp.push_back(randomVal1);
+          temp2.push_back(randomVal2);
+          temp3.push_back(randomVal1);
+          temp4.push_back(randomVal2);
         }
         matrix.push_back(temp);
-        matrix.push_back(temp2);
+        matrix2.push_back(temp2);
+        mat.push_back(temp3);
+        mat2.push_back(temp4);
     }
     vct vect = {};
     for (int i = 0; i < dim; i++) {
@@ -75,12 +83,12 @@ class MatrixVectorMultiplicationTest : public testing::Test {
     //creating formats for matrix and vector
     auto packedVectors = getPackedVector(vect, 1);
     ptxtVect = internalTensor::initInternalPackedVectors(packedVectors);
-    ctxtVect = cipherTensor(ptxtVect, cc, false, keypair);
+    ctxtVect = cipherTensor(ptxtVect, cc1, false, keypairs);
 
     ptxtMatrix = internalTensor::initInternalMatrixForMxM(matrix);
     ptxtMatrix2 = internalTensor::initInternalMatrixForMxM(matrix2);
-    ctxtMatrix = cipherTensor(ptxtMatrix, cc, true, keypair);
-    ctxtMatrix2 = cipherTensor(ptxtMatrix2, cc, true, keypair);
+    ctxtMatrix = cipherTensor(ptxtMatrix, cc1, true, keypairs);
+    ctxtMatrix2 = cipherTensor(ptxtMatrix2, cc1, true, keypairs);
   }
 
 //   ~MatrixVectorMultiplicationTest() override {
@@ -89,6 +97,8 @@ class MatrixVectorMultiplicationTest : public testing::Test {
 
     mtx matrix = {};
     mtx matrix2 = {};
+    std::vector<std::vector<double>> mat = {};
+    std::vector<std::vector<double>> mat2 = {};
 
     internalTensor ptxtVect;
     cipherTensor ctxtVect;
@@ -98,24 +108,21 @@ class MatrixVectorMultiplicationTest : public testing::Test {
     cipherTensor ctxtMatrix;
     cipherTensor ctxtMatrix2;
     int dim;
-    CryptoContext<DCRTPoly> cc;
-    KeyPair<DCRTPoly> keypair;
+    CryptoContext<DCRTPoly> cc1;
+    KeyPair<DCRTPoly> keypairs;
 };
 
 // Tests that the Foo::Bar() method does Abc.
 TEST_F(MatrixVectorMultiplicationTest, Random_Matrices_test) {
-  
-  EXPECT_EQ(cipherTensor::matrixMult(ctxtMatrix, ctxtMatrix2, dim, cc, keypair), mulMat(matrix, matrix2, dim));
+  auto result = cipherTensor::matrixMult(ctxtMatrix, ctxtMatrix2, dim, cc1, keypairs).getCipher()[0];
+  Plaintext PTResult;
+  cc1->Decrypt(keypairs.secretKey, result, &PTResult);
+  std::vector<double> vectResult = PTResult->GetRealPackedValue();
+  auto expected = mulMat(mat, mat2, dim);
+  for (int i = 0; i < expected.size(); i ++) {
+    ASSERT_NEAR(vectResult[i], expected[i], 0.0001); // 4 decimal places
+  }
 }
-
-// Tests that Foo does Xyz.
-TEST_F(FooTest, DoesXyz) {
-  // Exercises the Xyz feature of Foo.
-}
-
-}  // namespace
-}  // namespace project
-}  // namespace my
 
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);

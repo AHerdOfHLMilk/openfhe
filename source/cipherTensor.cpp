@@ -8,7 +8,7 @@ typedef Ciphertext<DCRTPoly> ctxt;
 //External structure for taking in the cryptocontext and encoding and encryption
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //constructing from a ctxt
-cipherTensor::cipherTensor(ctxt inputCtxtVect, unsigned int dimensionSize, CryptoContext<DCRTPoly> cryptoContext) {
+cipherTensor::cipherTensor(ctxt inputCtxtVect, unsigned int dimensionSize, CryptoContext<DCRTPoly> &cryptoContext) {
     this->isVect = true;
     this->cipher.push_back(inputCtxtVect);
     this->dimensionSize = dimensionSize;
@@ -16,7 +16,7 @@ cipherTensor::cipherTensor(ctxt inputCtxtVect, unsigned int dimensionSize, Crypt
 }
 
 //constructing from a internalTensor
-cipherTensor::cipherTensor(internalTensor inputMatrix, CryptoContext<DCRTPoly> inputCryptoContext, bool makeDiag, KeyPair<DCRTPoly> keypair) {
+cipherTensor::cipherTensor(internalTensor inputMatrix, CryptoContext<DCRTPoly> &inputCryptoContext, bool makeDiag, KeyPair<DCRTPoly> keypair) {
     this->cryptoContext = inputCryptoContext;
     if (inputMatrix.isVector()) {
         this->isVect = true;

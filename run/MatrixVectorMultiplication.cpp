@@ -26,7 +26,7 @@ vct mulMat(mtx mat1, mtx mat2, unsigned int dim) {
 
 int main() {
 
-    unsigned int dim = 4; //size of width/length of matrix (update manually for testing)
+    unsigned int dim = 8; //size of width/length of matrix (update manually for testing)
 
     //Setting cryptoContext parameters
     CCParams<CryptoContextCKKSRNS> parameters;

@@ -28,6 +28,6 @@ add_library(OPENFHE_BIN STATIC IMPORTED)
 set_target_properties(OPENFHE_BIN PROPERTIES IMPORTED_LOCATION ${OPENFHE_LIBDIR_BIN})
 
 add_subdirectory(source)
-
-enable_testing()
 add_subdirectory(run)
+enable_testing()
+add_subdirectory(test)

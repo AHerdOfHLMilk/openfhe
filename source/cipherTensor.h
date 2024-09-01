@@ -15,16 +15,16 @@ class cipherTensor { //can jus convert the various storing of forms into jus a f
     private:
     unsigned int dimensionSize;
     std::vector<ctxt> cipher = {}; //in diagonal packing form
-    CryptoContext<DCRTPoly> cryptoContext;
+    CryptoContext<DCRTPoly> cryptoContext; //TODO:Pass by reference
     bool isVect = false;
-    bool isE2DM = false; //TODO: add this flag in properly
+    bool isE2DM = false;
 
     public:
     //constructing from a ctxt
-    cipherTensor(ctxt inputCtxtVect, unsigned int dimensionSize, CryptoContext<DCRTPoly> cryptoContext);
+    cipherTensor(ctxt inputCtxtVect, unsigned int dimensionSize, CryptoContext<DCRTPoly> &cryptoContext);
 
     //constructing from a internalTensor
-    cipherTensor(internalTensor inputMatrix, CryptoContext<DCRTPoly> cryptoContext, bool makeDiag, KeyPair<DCRTPoly> keypair);
+    cipherTensor(internalTensor inputMatrix, CryptoContext<DCRTPoly> &cryptoContext, bool makeDiag, KeyPair<DCRTPoly> keypair);
 
     ctxt getRow(unsigned int rowNum);
 
